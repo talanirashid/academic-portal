@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://academic-portal-pk.web.app/sitemap.xml

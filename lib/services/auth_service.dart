@@ -92,6 +92,20 @@ class AuthService {
     }
   }
 
+  /// Sign in with Google Provider (using GoogleAuthProvider for Web and Native).
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      final googleProvider = GoogleAuthProvider();
+      final creds = await _auth.signInWithPopup(googleProvider);
+      if (creds.user != null) {
+        await ensureUserRecordExists(creds.user!, name: creds.user!.displayName);
+      }
+      return creds;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Sign in with Email and Password.
   Future<UserCredential?> signInWithEmail(String email, String password) async {
     try {

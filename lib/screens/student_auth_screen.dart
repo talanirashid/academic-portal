@@ -80,6 +80,30 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signed in with Google successfully!'),
+            backgroundColor: Color(0xFF006633),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google Sign-In failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -204,7 +228,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                         ),
                         validator: (v) => v == null || v.length < 6 ? 'Password must be 6+ characters' : null,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       SizedBox(
                         width: double.infinity,
@@ -223,6 +247,30 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                 )
                               : Text(_isSignUp ? 'Register Account' : 'Sign In', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('OR', style: TextStyle(color: Colors.grey, fontSize: 12))),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.grey),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: _isLoading ? null : _handleGoogleSignIn,
+                          icon: const Icon(Icons.g_mobiledata, color: Colors.red, size: 30),
+                          label: const Text('Continue with Google Account', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
                         ),
                       ),
                       const SizedBox(height: 16),

@@ -3,6 +3,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
 import '../widgets/bilingual_tooltip_widget.dart';
+import '../widgets/kmap_solver_widget.dart';
 import '../widgets/logic_gate_simulator_widget.dart';
 import 'pdf_viewer_screen.dart';
 
@@ -214,6 +215,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
                     // Interactive Logic Gate Simulator Widget
                     const LogicGateSimulatorWidget(),
+
+                    const SizedBox(height: 16),
+
+                    // Interactive K-Map 2-Variable Solver Widget
+                    const KMapSolverWidget(),
 
                     const SizedBox(height: 16),
 

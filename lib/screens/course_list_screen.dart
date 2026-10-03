@@ -5,6 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
+import '../widgets/acronym_glossary_widget.dart';
+import '../widgets/exam_countdown_widget.dart';
+import '../widgets/number_system_scratchpad_widget.dart';
 import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
 import 'past_papers_screen.dart';
@@ -288,6 +291,9 @@ class _CourseListScreenState extends State<CourseListScreen> {
       ),
       body: Column(
         children: [
+          // Target Board Exam Countdown Widget Header
+          const ExamCountdownWidget(),
+
           // Web Direct APK Download Banner (Visible only on Web)
           if (kIsWeb)
             Container(
@@ -396,7 +402,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Category Filter Chips & Past Papers Quick Button
+                // Category Filter Chips & Quick Tools
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -437,6 +443,15 @@ class _CourseListScreenState extends State<CourseListScreen> {
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 12),
+
+                // Computing Acronyms Glossary Accordion
+                const AcronymGlossaryWidget(),
+                const SizedBox(height: 8),
+
+                // Number System Conversion Calculator Widget
+                const NumberSystemScratchpadWidget(),
               ],
             ),
           ),

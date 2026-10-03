@@ -7,9 +7,12 @@ import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/acronym_glossary_widget.dart';
 import '../widgets/cpp_code_runner_widget.dart';
+import '../widgets/cpu_cycle_simulator_widget.dart';
+import '../widgets/er_diagram_normalization_widget.dart';
 import '../widgets/exam_countdown_widget.dart';
 import '../widgets/gantt_chart_simulator_widget.dart';
 import '../widgets/number_system_scratchpad_widget.dart';
+import '../widgets/osi_model_inspector_widget.dart';
 import '../widgets/sql_sandbox_widget.dart';
 import '../widgets/student_badges_widget.dart';
 import '../widgets/subnet_calculator_widget.dart';
@@ -18,6 +21,7 @@ import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
 import 'exam_cheat_sheet_screen.dart';
 import 'past_papers_screen.dart';
+import 'student_auth_dialog.dart';
 
 class CourseListScreen extends StatefulWidget {
   const CourseListScreen({super.key});
@@ -107,8 +111,8 @@ class _CourseListScreenState extends State<CourseListScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.person_outline),
-                title: Text(user?.displayName ?? 'Guest Student'),
-                subtitle: Text(user?.email ?? 'Identifier: ${user?.uid ?? "Offline"}'),
+                title: Text(user?.displayName ?? (user?.isAnonymous == true ? 'Guest Student' : 'Student')),
+                subtitle: Text(user?.email ?? 'Session ID: ${user?.uid.substring(0, 8) ?? "Guest"}'),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -163,7 +167,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (user == null)
+                  if (user == null || user.isAnonymous)
                     Expanded(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -171,11 +175,13 @@ class _CourseListScreenState extends State<CourseListScreen> {
                           foregroundColor: Colors.white,
                         ),
                         icon: const Icon(Icons.login),
-                        label: const Text('Guest Login'),
-                        onPressed: () async {
-                          await _authService.signInAnonymously();
-                          if (context.mounted) Navigator.pop(context);
-                          setState(() {});
+                        label: const Text('Register / Login'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const StudentAuthDialog(),
+                          );
                         },
                       ),
                     )
@@ -491,15 +497,21 @@ class _CourseListScreenState extends State<CourseListScreen> {
                         child: const ExpansionTile(
                           leading: Icon(Icons.build_circle, color: Color(0xFF006633)),
                           title: Text(
-                            'Interactive Computing Solvers & Solved Tools',
+                            'FBISE & Board Interactive Computing Solvers & Tools',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF004D26)),
                           ),
-                          subtitle: Text('C++ Runner, 2\'s Complement, OS Gantt, Subnetting, SQL Sandbox & K-Map'),
+                          subtitle: Text('CPU Registers, OSI 7-Layer, ER Normalization, C++, 2\'s Comp, OS Gantt & SQL'),
                           children: [
                             Padding(
                               padding: EdgeInsets.all(12.0),
                               child: Column(
                                 children: [
+                                  CpuCycleSimulatorWidget(),
+                                  SizedBox(height: 12),
+                                  OsiModelInspectorWidget(),
+                                  SizedBox(height: 12),
+                                  ErDiagramNormalizationWidget(),
+                                  SizedBox(height: 12),
                                   CppCodeRunnerWidget(),
                                   SizedBox(height: 12),
                                   TwosComplementSolverWidget(),
@@ -521,7 +533,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Course Catalog & Curriculum Chapters',
+                        'Course Catalog & FBISE Curriculum Chapters',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
                       ),
                     ],

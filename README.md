@@ -6,7 +6,7 @@ A cross-platform (Web & Android) educational streaming and resource distribution
 
 - **Cross-Platform:** Built with Flutter, supporting responsive Web deployment (1–3 column dynamic grid) and Android devices.
 - **Content Delivery:** Integrated YouTube video lectures paired with downloadable academic notes and keybooks.
-- **Security First:** Screenshot and screen-recording prevention via Android `FLAG_SECURE`, sanitized public version control, and template-based Firebase configurations.
+- **Security & Authentication:** Anonymous and email authentication creating user profiles under `/users/{uid}`, screenshot and screen-recording prevention via Android `FLAG_SECURE`, sanitized public version control, and template-based Firebase configurations.
 - **Backend:** Firebase Authentication and Cloud Firestore for course catalogs and student data.
 
 ---
@@ -25,9 +25,12 @@ lib/
 ├── main.dart                      # App entry point & Firebase initialization
 ├── models/
 │   └── course_model.dart          # Course & Module serialization models
-└── screens/
-    ├── course_list_screen.dart    # Responsive course grid & category filtering
-    └── course_detail_screen.dart  # YouTube player, PDF notes launcher & chapters
+├── screens/
+│   ├── course_list_screen.dart    # Responsive course grid & student account session
+│   └── course_detail_screen.dart  # YouTube player, PDF notes launcher & chapters
+└── services/
+    ├── auth_service.dart          # Authentication & student profile syncing
+    └── mock_data_service.dart     # Firestore catalog seeding script
 ```
 
 ---

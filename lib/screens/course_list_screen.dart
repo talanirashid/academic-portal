@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/course_model.dart';
+import '../services/auth_service.dart';
+import '../services/mock_data_service.dart';
 import 'course_detail_screen.dart';
 
 class CourseListScreen extends StatefulWidget {
@@ -11,7 +13,9 @@ class CourseListScreen extends StatefulWidget {
 }
 
 class _CourseListScreenState extends State<CourseListScreen> {
+  final AuthService _authService = AuthService();
   String _selectedCategory = 'All';
+  bool _isSeeding = false;
 
   final List<String> _categories = [
     'All',
@@ -20,6 +24,119 @@ class _CourseListScreenState extends State<CourseListScreen> {
     'FSc Pre-Engineering',
     'ICS / CS',
   ];
+
+  Future<void> _handleSeedCourses() async {
+    setState(() => _isSeeding = true);
+    final seeded = await MockDataService.seedSampleCourses();
+    setState(() => _isSeeding = false);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            seeded
+                ? 'Sample courses seeded successfully into Firestore!'
+                : 'Courses already exist in Firestore collection.',
+          ),
+          backgroundColor: const Color(0xFF006633),
+        ),
+      );
+    }
+  }
+
+  void _showAccountModal(BuildContext context) {
+    final user = _authService.currentUser;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.account_circle, size: 36, color: Color(0xFF006633)),
+                  SizedBox(width: 12),
+                  Text(
+                    'Student Account Session',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.person_outline),
+                title: Text(user?.displayName ?? 'Guest Student'),
+                subtitle: Text(user?.email ?? 'Identifier: ${user?.uid ?? "Offline"}'),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.security),
+                title: Text(user?.isAnonymous ?? true
+                    ? 'Anonymous Student Session'
+                    : 'Registered Student Account'),
+                subtitle: const Text('Record stored under /users/{uid}'),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.cloud_upload_outlined),
+                      label: const Text('Seed Sample Catalog'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _handleSeedCourses();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (user == null)
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF006633),
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.login),
+                        label: const Text('Guest Login'),
+                        onPressed: () async {
+                          await _authService.signInAnonymously();
+                          if (context.mounted) Navigator.pop(context);
+                          setState(() {});
+                        },
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[700],
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Sign Out'),
+                        onPressed: () async {
+                          await _authService.signOut();
+                          if (context.mounted) Navigator.pop(context);
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +165,11 @@ class _CourseListScreenState extends State<CourseListScreen> {
         backgroundColor: const Color(0xFF006633), // Green representing Pakistan identity
         elevation: 2,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle, color: Colors.white),
+            tooltip: 'Student Account Session',
+            onPressed: () => _showAccountModal(context),
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),
             tooltip: 'About Portal',
@@ -129,7 +251,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting || _isSeeding) {
                   return const Center(
                     child: CircularProgressIndicator(color: Color(0xFF006633)),
                   );
@@ -155,7 +277,9 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   return _buildErrorOrEmptyState(
                     context,
                     title: 'No Courses Available',
-                    message: 'No courses found in the selected category. You can add courses to Firestore under "/courses".',
+                    message:
+                        'No courses found in the selected category. Click "Seed Sample Catalog" below to populate Firestore with sample courses.',
+                    showSeedOption: true,
                   );
                 }
 
@@ -195,7 +319,12 @@ class _CourseListScreenState extends State<CourseListScreen> {
     );
   }
 
-  Widget _buildErrorOrEmptyState(BuildContext context, {required String title, required String message}) {
+  Widget _buildErrorOrEmptyState(
+    BuildContext context, {
+    required String title,
+    required String message,
+    bool showSeedOption = false,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -215,14 +344,30 @@ class _CourseListScreenState extends State<CourseListScreen> {
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF006633),
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () => setState(() {}),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry / Refresh'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF006633),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => setState(() {}),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                ),
+                if (showSeedOption) ...[
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF006633),
+                    ),
+                    onPressed: _handleSeedCourses,
+                    icon: const Icon(Icons.cloud_upload_outlined),
+                    label: const Text('Seed Sample Catalog'),
+                  ),
+                ],
+              ],
             )
           ],
         ),

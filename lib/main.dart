@@ -3,12 +3,24 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'screens/course_list_screen.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Auto-ensure anonymous student user session on startup if not logged in
+  final authService = AuthService();
+  if (authService.currentUser == null) {
+    try {
+      await authService.signInAnonymously();
+    } catch (_) {
+      // Silent catch for initial offline launches
+    }
+  }
+
   runApp(const AcademicPortalApp());
 }
 

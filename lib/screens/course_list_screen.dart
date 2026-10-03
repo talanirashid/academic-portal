@@ -6,8 +6,14 @@ import '../models/course_model.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/acronym_glossary_widget.dart';
+import '../widgets/cpp_code_runner_widget.dart';
 import '../widgets/exam_countdown_widget.dart';
+import '../widgets/gantt_chart_simulator_widget.dart';
 import '../widgets/number_system_scratchpad_widget.dart';
+import '../widgets/sql_sandbox_widget.dart';
+import '../widgets/student_badges_widget.dart';
+import '../widgets/subnet_calculator_widget.dart';
+import '../widgets/twos_complement_solver_widget.dart';
 import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
 import 'exam_cheat_sheet_screen.dart';
@@ -471,12 +477,45 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
                 const SizedBox(height: 12),
 
-                // Computing Acronyms Glossary Accordion
-                const AcronymGlossaryWidget(),
+                // Gamified Student Badges
+                const StudentBadgesWidget(),
                 const SizedBox(height: 8),
 
-                // Number System Conversion Calculator Widget
-                const NumberSystemScratchpadWidget(),
+                // Expandable Interactive Computing Lab & Solvers Section
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: const ExpansionTile(
+                    leading: Icon(Icons.build_circle, color: Color(0xFF006633)),
+                    title: Text(
+                      'Interactive Computing Solvers & Solved Tools',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF004D26)),
+                    ),
+                    subtitle: Text('C++ Runner, 2\'s Complement, OS Gantt, Subnetting, SQL Sandbox & K-Map'),
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Column(
+                          children: [
+                            CppCodeRunnerWidget(),
+                            SizedBox(height: 12),
+                            TwosComplementSolverWidget(),
+                            SizedBox(height: 12),
+                            GanttChartSimulatorWidget(),
+                            SizedBox(height: 12),
+                            SubnetCalculatorWidget(),
+                            SizedBox(height: 12),
+                            SqlSandboxWidget(),
+                            SizedBox(height: 12),
+                            AcronymGlossaryWidget(),
+                            SizedBox(height: 12),
+                            NumberSystemScratchpadWidget(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

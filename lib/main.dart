@@ -35,7 +35,7 @@ class AcademicPortalApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Academic Portal Pakistan',
+      title: 'Pakistan Computer Science Academy | Academic Portal & Resource Hub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

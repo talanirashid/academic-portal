@@ -12,6 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 .firebase/
+android/.kotlin/
 
 # IntelliJ related
 *.iml
@@ -42,6 +43,7 @@ app.*.map.json
 
 # Secrets & Local Configurations
 android/app/google-services.json
+android/local.properties
 lib/firebase_options.dart
 *.keystore
 *.jks

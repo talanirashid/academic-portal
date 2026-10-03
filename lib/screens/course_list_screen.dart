@@ -175,19 +175,28 @@ class _CourseListScreenState extends State<CourseListScreen> {
       crossAxisCount = 2;
     }
 
+    final isMobile = screenWidth < 600;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.school, color: Colors.white),
-            SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.amber[700],
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.shield, color: Color(0xFF004D26), size: 20),
+            ),
+            const SizedBox(width: 10),
             Text(
-              'Pakistan Educational Portal',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              isMobile ? 'PCSA Portal' : 'Pakistan Computer Science Academy',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF006633),
+        backgroundColor: const Color(0xFF004D26),
         elevation: 2,
         actions: [
           IconButton(
@@ -197,16 +206,21 @@ class _CourseListScreenState extends State<CourseListScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),
-            tooltip: 'About Portal',
+            tooltip: 'About Academy',
             onPressed: () {
               showAboutDialog(
                 context: context,
-                applicationName: 'Academic Portal Pakistan',
+                applicationName: 'Pakistan Computer Science Academy',
                 applicationVersion: '1.0.0',
-                applicationIcon: const Icon(Icons.school, size: 40, color: Color(0xFF006633)),
+                applicationIcon: const Icon(Icons.shield, size: 40, color: Color(0xFF004D26)),
                 children: [
                   const Text(
-                    'A cross-platform educational platform providing free access to video lectures and lecture notes for Pakistani students.',
+                    'Pakistan Computer Science Academy (PCSA) provides free, high-yield video lectures, chapter keybooks, board exam notes, and interactive quizzes for FBISE, Sindh Board, and competitive CS examinations.',
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '“Bridging Foundational Concepts with Modern Computing Excellence.”',
+                    style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xFF004D26), fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   InkWell(
@@ -267,7 +281,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
               ),
             ),
 
-          // Top Header Banner with Search Field
+          // Top Header Banner with Branding, Taglines & Search Field
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -281,15 +295,25 @@ class _CourseListScreenState extends State<CourseListScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Explore Courses & Lectures',
+                  'Pakistan Computer Science Academy',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  '“Bridging Foundational Concepts with Modern Computing Excellence.”',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF006633), fontStyle: FontStyle.italic),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Access high-quality curriculum lectures, video tutorials, and PDF study notes.',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                  'Master Intermediate & Advanced Computing — Conceptual, Rigorous, 100% Free.',
+                  style: TextStyle(fontSize: 13, color: Colors.black87),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
+                const Text(
+                  'علم • تحقیق • کمپیوٹنگ | Excellence in Computer Science Education',
+                  style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 14),
 
                 // Search Bar Input
                 TextField(
@@ -633,11 +657,11 @@ class _CourseCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.play_circle_outline, size: 48, color: Colors.white),
+            Icon(Icons.shield, size: 48, color: Colors.amber),
             SizedBox(height: 4),
             Text(
-              'Educational Portal PK',
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+              'PCSA Portal',
+              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ],
         ),

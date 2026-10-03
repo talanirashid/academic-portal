@@ -10,6 +10,7 @@ import '../widgets/exam_countdown_widget.dart';
 import '../widgets/number_system_scratchpad_widget.dart';
 import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
+import 'exam_cheat_sheet_screen.dart';
 import 'past_papers_screen.dart';
 
 class CourseListScreen extends StatefulWidget {
@@ -233,6 +234,16 @@ class _CourseListScreenState extends State<CourseListScreen> {
         elevation: 2,
         actions: [
           IconButton(
+            icon: const Icon(Icons.menu_book, color: Colors.white),
+            tooltip: 'Exam Night Cheat Sheet',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.description, color: Colors.white),
             tooltip: 'Solved Board Past Papers',
             onPressed: () {
@@ -429,6 +440,20 @@ class _CourseListScreenState extends State<CourseListScreen> {
                           ),
                         );
                       }),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
+                          backgroundColor: const Color(0xFF006633),
+                          label: const Text('Exam Cheat Sheet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
+                            );
+                          },
+                        ),
+                      ),
                       ActionChip(
                         avatar: const Icon(Icons.description, size: 16, color: Colors.white),
                         backgroundColor: const Color(0xFF004D26),

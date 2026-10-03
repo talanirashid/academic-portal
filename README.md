@@ -5,9 +5,11 @@ A cross-platform (Web & Android) educational streaming and resource distribution
 ## 🚀 Overview
 
 - **Cross-Platform:** Built with Flutter, supporting responsive Web deployment (1–3 column dynamic grid) and Android devices.
-- **Content Delivery:** Integrated YouTube video lectures paired with downloadable academic notes and keybooks.
+- **Content Delivery:** Integrated YouTube video lectures paired with in-app PDF study notes and keybooks.
+- **In-App PDF Viewer:** Secure cross-platform PDF viewing via `syncfusion_flutter_pdfviewer` with student watermark attribution.
+- **Interactive MCQs & Search:** Real-time query search across courses, topics, and instructors alongside topic-wise self-assessment quizzes with instant explanation feedback.
 - **Security & Authentication:** Anonymous and email authentication creating user profiles under `/users/{uid}`, screenshot and screen-recording prevention via Android `FLAG_SECURE`, sanitized public version control, and template-based Firebase configurations.
-- **Backend:** Firebase Authentication and Cloud Firestore for course catalogs and student data.
+- **Backend:** Firebase Authentication, Cloud Firestore, and Firebase Hosting.
 
 ---
 
@@ -15,7 +17,7 @@ A cross-platform (Web & Android) educational streaming and resource distribution
 
 - **Framework:** [Flutter](https://flutter.dev) (v3+)
 - **Backend:** [Google Cloud Firebase](https://firebase.google.com/) (Auth, Cloud Firestore, Firebase Hosting)
-- **Video & Web Integration:** `youtube_player_iframe`, `url_launcher`
+- **PDF & Video Libraries:** `syncfusion_flutter_pdfviewer`, `youtube_player_iframe`, `url_launcher`
 - **State & UI:** `google_fonts`, Material 3 design system
 
 ```
@@ -24,13 +26,14 @@ lib/
 ├── firebase_options.example.dart  # Public template for Firebase options
 ├── main.dart                      # App entry point & Firebase initialization
 ├── models/
-│   └── course_model.dart          # Course & Module serialization models
+│   └── course_model.dart          # Course, Module & QuizQuestion models
 ├── screens/
-│   ├── course_list_screen.dart    # Responsive course grid & student account session
-│   └── course_detail_screen.dart  # YouTube player, PDF notes launcher & chapters
+│   ├── course_list_screen.dart    # Responsive course grid, search bar & web APK banner
+│   ├── course_detail_screen.dart  # YouTube player, interactive MCQs & chapter list
+│   └── pdf_viewer_screen.dart     # In-app PDF viewer with watermark attribution
 └── services/
     ├── auth_service.dart          # Authentication & student profile syncing
-    └── mock_data_service.dart     # Firestore catalog seeding script
+    └── mock_data_service.dart     # Firestore catalog & MCQ seeding script
 ```
 
 ---

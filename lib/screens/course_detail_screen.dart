@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/course_model.dart';
+import '../services/auth_service.dart';
+import 'pdf_viewer_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Course course;
@@ -13,8 +14,12 @@ class CourseDetailScreen extends StatefulWidget {
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  final AuthService _authService = AuthService();
   late YoutubePlayerController _controller;
   Module? _activeModule;
+
+  // Track quiz selections: questionId -> selectedOptionIndex
+  final Map<String, int> _quizAnswers = {};
 
   @override
   void initState() {
@@ -44,25 +49,33 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   void _selectModule(Module module) {
     setState(() {
       _activeModule = module;
+      _quizAnswers.clear(); // Reset quiz choices when changing chapter
     });
     if (module.youtubeVideoId.isNotEmpty) {
       _controller.loadVideoById(videoId: module.youtubeVideoId);
     }
   }
 
-  Future<void> _launchNotesUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open notes link: $url')),
-        );
-      }
-    }
+  void _openInAppPdfViewer(String title, String url) {
+    final studentInfo = _authService.currentUser?.email ??
+        'Student ID: ${_authService.currentUser?.uid.substring(0, 8) ?? "Guest"}';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PdfViewerScreen(
+          title: title,
+          pdfUrl: url,
+          studentInfo: studentInfo,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final activeQuizList = _activeModule?.quizQuestions ?? [];
+
     return YoutubePlayerControllerProvider(
       controller: _controller,
       child: Scaffold(
@@ -87,7 +100,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
               ),
 
-              // Active Lecture Details & Notes Action
+              // Active Lecture Details & In-App PDF Action
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -108,7 +121,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       const SizedBox(height: 12),
                     ],
 
-                    // Downloadable Notes Buttons using url_launcher
+                    // In-App Notes Viewer Action using SfPdfViewer
                     if (_activeModule?.pdfNotesUrl != null && _activeModule!.pdfNotesUrl!.isNotEmpty)
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -117,15 +130,35 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        onPressed: () => _launchNotesUrl(_activeModule!.pdfNotesUrl!),
+                        onPressed: () => _openInAppPdfViewer(
+                          _activeModule!.title,
+                          _activeModule!.pdfNotesUrl!,
+                        ),
                         icon: const Icon(Icons.picture_as_pdf),
                         label: const Text(
-                          'Download Lecture Notes (PDF)',
+                          'View Chapter Notes (In-App PDF)',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
 
                     const Divider(height: 32, thickness: 1),
+
+                    // Interactive Topic MCQs Practice Quiz Section
+                    if (activeQuizList.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          const Icon(Icons.quiz, color: Color(0xFF006633)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Practice MCQs & Self-Assessment (${activeQuizList.length})',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildInteractiveQuizCard(activeQuizList),
+                      const Divider(height: 32, thickness: 1),
+                    ],
 
                     // Course Info Summary
                     Text(
@@ -195,7 +228,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 child: Text(
                                   '${index + 1}',
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.black80,
+                                    color: isSelected ? Colors.white : Colors.black87,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -215,8 +248,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   if (module.pdfNotesUrl != null && module.pdfNotesUrl!.isNotEmpty)
                                     IconButton(
                                       icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                                      tooltip: 'Download PDF Notes',
-                                      onPressed: () => _launchNotesUrl(module.pdfNotesUrl!),
+                                      tooltip: 'View PDF Notes',
+                                      onPressed: () => _openInAppPdfViewer(
+                                        module.title,
+                                        module.pdfNotesUrl!,
+                                      ),
                                     ),
                                   Icon(
                                     isSelected ? Icons.play_circle_fill : Icons.play_circle_outline,
@@ -234,6 +270,148 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInteractiveQuizCard(List<QuizQuestion> questions) {
+    int totalQuestions = questions.length;
+    int answeredCount = _quizAnswers.length;
+    int correctCount = 0;
+
+    for (var q in questions) {
+      if (_quizAnswers.containsKey(q.id) && _quizAnswers[q.id] == q.correctOptionIndex) {
+        correctCount++;
+      }
+    }
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quiz Header Score Summary
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Topic Knowledge Check',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
+                ),
+                Chip(
+                  backgroundColor: const Color(0xFF006633).withValues(alpha: 0.1),
+                  label: Text(
+                    'Done: $answeredCount/$totalQuestions • Score: $correctCount',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF006633)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Questions List
+            ...questions.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final q = entry.value;
+              final selectedOption = _quizAnswers[q.id];
+              final isAnswered = selectedOption != null;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Q${idx + 1}: ${q.questionText}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Options List
+                    ...q.options.asMap().entries.map((optEntry) {
+                      final optIdx = optEntry.key;
+                      final optText = optEntry.value;
+
+                      Color? tileColor;
+                      IconData icon = Icons.circle_outlined;
+                      Color iconColor = Colors.grey;
+
+                      if (isAnswered) {
+                        if (optIdx == q.correctOptionIndex) {
+                          tileColor = Colors.green[100];
+                          icon = Icons.check_circle;
+                          iconColor = Colors.green[800]!;
+                        } else if (optIdx == selectedOption) {
+                          tileColor = Colors.red[100];
+                          icon = Icons.cancel;
+                          iconColor = Colors.red[800]!;
+                        }
+                      }
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        decoration: BoxDecoration(
+                          color: tileColor ?? Colors.grey[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isAnswered && optIdx == q.correctOptionIndex
+                                ? Colors.green
+                                : isAnswered && optIdx == selectedOption
+                                    ? Colors.red
+                                    : Colors.grey[300]!,
+                          ),
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(icon, color: iconColor, size: 20),
+                          title: Text(
+                            optText,
+                            style: TextStyle(
+                              fontWeight: selectedOption == optIdx ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _quizAnswers[q.id] = optIdx;
+                            });
+                          },
+                        ),
+                      );
+                    }),
+
+                    // Explanation Box
+                    if (isAnswered && q.explanation.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Explanation: ${q.explanation}',
+                                style: const TextStyle(fontSize: 13, color: Colors.black87),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );

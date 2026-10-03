@@ -39,6 +39,22 @@ class MockDataService {
             'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         'duration': '18:40',
         'orderIndex': 1,
+        'quizQuestions': [
+          {
+            'id': 'q1',
+            'questionText': 'Which bus is bidirectional in a computer system architecture?',
+            'options': ['Control Bus', 'Address Bus', 'Data Bus', 'Power Bus'],
+            'correctOptionIndex': 2,
+            'explanation': 'The Data Bus is bidirectional as data travels into and out of CPU/memory registers.'
+          },
+          {
+            'id': 'q2',
+            'questionText': 'What is the binary equivalent of decimal 25?',
+            'options': ['11001', '10101', '11100', '10011'],
+            'correctOptionIndex': 0,
+            'explanation': '25 in base-2 binary is 16 + 8 + 1 = 11001_2.'
+          }
+        ]
       }, SetOptions(merge: true));
 
       await modules1Ref.doc('mod_2').set({
@@ -51,6 +67,15 @@ class MockDataService {
             'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         'duration': '24:15',
         'orderIndex': 2,
+        'quizQuestions': [
+          {
+            'id': 'q3',
+            'questionText': 'Which logic gate produces HIGH output only when all inputs are HIGH?',
+            'options': ['OR Gate', 'AND Gate', 'NAND Gate', 'XOR Gate'],
+            'correctOptionIndex': 1,
+            'explanation': 'An AND gate gives output 1 (HIGH) only when both input signals A and B are 1.'
+          }
+        ]
       }, SetOptions(merge: true));
 
       await modules1Ref.doc('mod_3').set({
@@ -63,6 +88,15 @@ class MockDataService {
             'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         'duration': '21:05',
         'orderIndex': 3,
+        'quizQuestions': [
+          {
+            'id': 'q4',
+            'questionText': 'Which memory type is volatile and loses data when power is off?',
+            'options': ['ROM', 'Flash Drive', 'RAM', 'Hard Disk'],
+            'correctOptionIndex': 2,
+            'explanation': 'RAM (Random Access Memory) is volatile primary memory.'
+          }
+        ]
       }, SetOptions(merge: true));
 
       // 2. Class XII Computer Science
@@ -95,6 +129,15 @@ class MockDataService {
             'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         'duration': '22:10',
         'orderIndex': 1,
+        'quizQuestions': [
+          {
+            'id': 'q5',
+            'questionText': 'Which data structure works on LIFO (Last In First Out) principle?',
+            'options': ['Queue', 'Stack', 'Tree', 'Array'],
+            'correctOptionIndex': 1,
+            'explanation': 'A Stack operates under LIFO, where the last element inserted is the first one removed.'
+          }
+        ]
       }, SetOptions(merge: true));
 
       await modules2Ref.doc('mod_2').set({
@@ -108,9 +151,17 @@ class MockDataService {
             'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         'duration': '28:30',
         'orderIndex': 2,
+        'quizQuestions': [
+          {
+            'id': 'q6',
+            'questionText': 'Which SQL clause is used to filter query results?',
+            'options': ['ORDER BY', 'GROUP BY', 'WHERE', 'HAVING'],
+            'correctOptionIndex': 2,
+            'explanation': 'The WHERE clause filters rows based on a specified boolean condition.'
+          }
+        ]
       }, SetOptions(merge: true));
 
-      // Log success message to console
       // ignore: avoid_print
       print('>>> [Firebase] Database successfully populated with courses and modules! <<<');
     } catch (e) {
@@ -119,7 +170,6 @@ class MockDataService {
     }
   }
 
-  /// Helper to trigger force seed or checking emptiness
   static Future<bool> seedSampleCourses({bool force = false}) async {
     await forceSeedDatabase();
     return true;

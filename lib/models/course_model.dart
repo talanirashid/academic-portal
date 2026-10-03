@@ -1,5 +1,43 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Model representing a topic MCQ question for self-assessment.
+class QuizQuestion {
+  final String id;
+  final String questionText;
+  final List<String> options;
+  final int correctOptionIndex;
+  final String explanation;
+
+  QuizQuestion({
+    required this.id,
+    required this.questionText,
+    required this.options,
+    required this.correctOptionIndex,
+    this.explanation = '',
+  });
+
+  factory QuizQuestion.fromMap(Map<String, dynamic> map, {String? id}) {
+    final opts = map['options'] as List<dynamic>? ?? [];
+    return QuizQuestion(
+      id: id ?? map['id'] as String? ?? '',
+      questionText: map['questionText'] as String? ?? map['question'] as String? ?? '',
+      options: opts.map((e) => e.toString()).toList(),
+      correctOptionIndex: (map['correctOptionIndex'] as num?)?.toInt() ?? 0,
+      explanation: map['explanation'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'questionText': questionText,
+      'options': options,
+      'correctOptionIndex': correctOptionIndex,
+      'explanation': explanation,
+    };
+  }
+}
+
 /// Model representing an individual module or lecture chapter within a course.
 class Module {
   final String id;
@@ -9,6 +47,7 @@ class Module {
   final String? pdfNotesUrl;
   final String duration;
   final int orderIndex;
+  final List<QuizQuestion> quizQuestions;
 
   Module({
     required this.id,
@@ -18,9 +57,11 @@ class Module {
     this.pdfNotesUrl,
     this.duration = '',
     this.orderIndex = 0,
+    this.quizQuestions = const [],
   });
 
   factory Module.fromMap(Map<String, dynamic> map, {String? id}) {
+    final quizData = map['quizQuestions'] as List<dynamic>? ?? map['quiz'] as List<dynamic>? ?? [];
     return Module(
       id: id ?? map['id'] as String? ?? '',
       title: map['title'] as String? ?? 'Untitled Module',
@@ -33,6 +74,10 @@ class Module {
           map['notesUrl'] as String?,
       duration: map['duration'] as String? ?? '',
       orderIndex: (map['orderIndex'] as num?)?.toInt() ?? 0,
+      quizQuestions: quizData
+          .whereType<Map<String, dynamic>>()
+          .map((q) => QuizQuestion.fromMap(q))
+          .toList(),
     );
   }
 
@@ -46,6 +91,7 @@ class Module {
       'notesPdfUrl': pdfNotesUrl,
       'duration': duration,
       'orderIndex': orderIndex,
+      'quizQuestions': quizQuestions.map((q) => q.toMap()).toList(),
     };
   }
 }

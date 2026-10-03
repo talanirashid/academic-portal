@@ -306,212 +306,223 @@ class _CourseListScreenState extends State<CourseListScreen> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          // Target Board Exam Countdown Widget Header
-          const ExamCountdownWidget(),
-
-          // Web Direct APK Download Banner (Visible only on Web)
-          if (kIsWeb)
-            Container(
-              width: double.infinity,
-              color: const Color(0xFF004D26),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.android, color: Colors.amber, size: 20),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      '📱 Download Android App (.apk) for faster on-the-go study & offline notes!',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber[700],
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () => _launchUrl(_apkDownloadUrl),
-                    child: const Text('Download APK'),
-                  ),
-                ],
-              ),
-            ),
-
-          // Top Header Banner with Branding, Taglines & Search Field
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF006633).withValues(alpha: 0.08),
-              border: const Border(
-                bottom: BorderSide(color: Color(0x22006633)),
-              ),
-            ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Pakistan Computer Science Academy',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  '“Bridging Foundational Concepts with Modern Computing Excellence.”',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF006633), fontStyle: FontStyle.italic),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Master Intermediate & Advanced Computing — Conceptual, Rigorous, 100% Free.',
-                  style: TextStyle(fontSize: 13, color: Colors.black87),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'علم • تحقیق • کمپیوٹنگ | Excellence in Computer Science Education',
-                  style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 14),
+                // Target Board Exam Countdown Widget Header
+                const ExamCountdownWidget(),
 
-                // Search Bar Input
-                TextField(
-                  controller: _searchController,
-                  onChanged: (val) {
-                    setState(() {
-                      _searchQuery = val.trim().toLowerCase();
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search courses, subjects, instructors, or chapters...',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF006633)),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(color: Color(0xFF006633)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide(color: const Color(0xFF006633).withValues(alpha: 0.3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(color: Color(0xFF006633), width: 2),
+                // Web Direct APK Download Banner (Visible only on Web)
+                if (kIsWeb)
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFF004D26),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.android, color: Colors.amber, size: 20),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            '📱 Download Android App (.apk) for faster on-the-go study & offline notes!',
+                            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber[700],
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () => _launchUrl(_apkDownloadUrl),
+                          child: const Text('Download APK'),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
 
-                // Category Filter Chips & Quick Tools
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                // Top Header Banner with Branding, Taglines & Search Field
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF006633).withValues(alpha: 0.08),
+                    border: const Border(
+                      bottom: BorderSide(color: Color(0x22006633)),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ..._categories.map((category) {
-                        final isSelected = _selectedCategory == category;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ChoiceChip(
-                            label: Text(category),
-                            selected: isSelected,
-                            selectedColor: const Color(0xFF006633),
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _selectedCategory = category;
-                                });
-                              }
-                            },
+                      const Text(
+                        'Pakistan Computer Science Academy',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        '“Bridging Foundational Concepts with Modern Computing Excellence.”',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF006633), fontStyle: FontStyle.italic),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Master Intermediate & Advanced Computing — Conceptual, Rigorous, 100% Free.',
+                        style: TextStyle(fontSize: 13, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'علم • تحقیق • کمپیوٹنگ | Excellence in Computer Science Education',
+                        style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Search Bar Input
+                      TextField(
+                        controller: _searchController,
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val.trim().toLowerCase();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search courses, subjects, instructors, or chapters...',
+                          prefixIcon: const Icon(Icons.search, color: Color(0xFF006633)),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(color: Color(0xFF006633)),
                           ),
-                        );
-                      }),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ActionChip(
-                          avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
-                          backgroundColor: const Color(0xFF006633),
-                          label: const Text('Exam Cheat Sheet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
-                            );
-                          },
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: const Color(0xFF006633).withValues(alpha: 0.3)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(color: Color(0xFF006633), width: 2),
+                          ),
                         ),
                       ),
-                      ActionChip(
-                        avatar: const Icon(Icons.description, size: 16, color: Colors.white),
-                        backgroundColor: const Color(0xFF004D26),
-                        label: const Text('Solved Past Papers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PastPapersScreen()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                      const SizedBox(height: 12),
 
-                const SizedBox(height: 12),
-
-                // Gamified Student Badges
-                const StudentBadgesWidget(),
-                const SizedBox(height: 8),
-
-                // Expandable Interactive Computing Lab & Solvers Section
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: const ExpansionTile(
-                    leading: Icon(Icons.build_circle, color: Color(0xFF006633)),
-                    title: Text(
-                      'Interactive Computing Solvers & Solved Tools',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF004D26)),
-                    ),
-                    subtitle: Text('C++ Runner, 2\'s Complement, OS Gantt, Subnetting, SQL Sandbox & K-Map'),
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Column(
+                      // Category Filter Chips & Quick Tools
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
                           children: [
-                            CppCodeRunnerWidget(),
-                            SizedBox(height: 12),
-                            TwosComplementSolverWidget(),
-                            SizedBox(height: 12),
-                            GanttChartSimulatorWidget(),
-                            SizedBox(height: 12),
-                            SubnetCalculatorWidget(),
-                            SizedBox(height: 12),
-                            SqlSandboxWidget(),
-                            SizedBox(height: 12),
-                            AcronymGlossaryWidget(),
-                            SizedBox(height: 12),
-                            NumberSystemScratchpadWidget(),
+                            ..._categories.map((category) {
+                              final isSelected = _selectedCategory == category;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: ChoiceChip(
+                                  label: Text(category),
+                                  selected: isSelected,
+                                  selectedColor: const Color(0xFF006633),
+                                  labelStyle: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedCategory = category;
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                            }),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ActionChip(
+                                avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
+                                backgroundColor: const Color(0xFF006633),
+                                label: const Text('Exam Cheat Sheet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
+                                  );
+                                },
+                              ),
+                            ),
+                            ActionChip(
+                              avatar: const Icon(Icons.description, size: 16, color: Colors.white),
+                              backgroundColor: const Color(0xFF004D26),
+                              label: const Text('Solved Past Papers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const PastPapersScreen()),
+                                );
+                              },
+                            ),
                           ],
                         ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Gamified Student Badges
+                      const StudentBadgesWidget(),
+                      const SizedBox(height: 8),
+
+                      // Expandable Interactive Computing Solvers Section
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: const ExpansionTile(
+                          leading: Icon(Icons.build_circle, color: Color(0xFF006633)),
+                          title: Text(
+                            'Interactive Computing Solvers & Solved Tools',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF004D26)),
+                          ),
+                          subtitle: Text('C++ Runner, 2\'s Complement, OS Gantt, Subnetting, SQL Sandbox & K-Map'),
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Column(
+                                children: [
+                                  CppCodeRunnerWidget(),
+                                  SizedBox(height: 12),
+                                  TwosComplementSolverWidget(),
+                                  SizedBox(height: 12),
+                                  GanttChartSimulatorWidget(),
+                                  SizedBox(height: 12),
+                                  SubnetCalculatorWidget(),
+                                  SizedBox(height: 12),
+                                  SqlSandboxWidget(),
+                                  SizedBox(height: 12),
+                                  AcronymGlossaryWidget(),
+                                  SizedBox(height: 12),
+                                  NumberSystemScratchpadWidget(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Course Catalog & Curriculum Chapters',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
                       ),
                     ],
                   ),
@@ -520,113 +531,121 @@ class _CourseListScreenState extends State<CourseListScreen> {
             ),
           ),
 
-          // StreamBuilder fetching from /courses
-          Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance.collection('courses').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting || _isSeeding) {
-                  return const Center(
+          // Courses Stream Section
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance.collection('courses').snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting || _isSeeding) {
+                return const SliverFillRemaining(
+                  child: Center(
                     child: CircularProgressIndicator(color: Color(0xFF006633)),
-                  );
-                }
+                  ),
+                );
+              }
 
-                if (snapshot.hasError) {
-                  return _buildErrorOrEmptyState(
+              if (snapshot.hasError) {
+                return SliverToBoxAdapter(
+                  child: _buildErrorOrEmptyState(
                     context,
                     title: 'Error loading courses',
                     message: snapshot.error.toString(),
-                  );
-                }
+                  ),
+                );
+              }
 
-                final docs = snapshot.data?.docs ?? [];
-                if (docs.isEmpty) {
-                  return _buildErrorOrEmptyState(
+              final docs = snapshot.data?.docs ?? [];
+              if (docs.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: _buildErrorOrEmptyState(
                     context,
                     title: 'No Courses Available',
                     message:
                         'No courses found in the selected category. Click "Seed Sample Catalog" below to populate Firestore with sample courses.',
                     showSeedOption: true,
-                  );
-                }
+                  ),
+                );
+              }
 
-                return FutureBuilder<List<Course>>(
-                  future: Future.wait(docs.map((doc) => Course.fromFirestoreWithSubcollections(doc))),
-                  builder: (context, coursesSnapshot) {
-                    if (coursesSnapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
+              return FutureBuilder<List<Course>>(
+                future: Future.wait(docs.map((doc) => Course.fromFirestoreWithSubcollections(doc))),
+                builder: (context, coursesSnapshot) {
+                  if (coursesSnapshot.connectionState == ConnectionState.waiting) {
+                    return const SliverFillRemaining(
+                      child: Center(
                         child: CircularProgressIndicator(color: Color(0xFF006633)),
-                      );
-                    }
+                      ),
+                    );
+                  }
 
-                    var courses = coursesSnapshot.data ?? [];
+                  var courses = coursesSnapshot.data ?? [];
 
-                    // Apply Category Filter
-                    if (_selectedCategory != 'All') {
-                      courses = courses
-                          .where((c) =>
-                              c.category.contains(_selectedCategory) ||
-                              c.grade.contains(_selectedCategory))
-                          .toList();
-                    }
+                  // Apply Category Filter
+                  if (_selectedCategory != 'All') {
+                    courses = courses
+                        .where((c) =>
+                            c.category.contains(_selectedCategory) ||
+                            c.grade.contains(_selectedCategory))
+                        .toList();
+                  }
 
-                    // Apply Real-time Search Query Filter
-                    if (_searchQuery.isNotEmpty) {
-                      courses = courses.where((c) {
-                        final titleMatch = c.title.toLowerCase().contains(_searchQuery);
-                        final categoryMatch = c.category.toLowerCase().contains(_searchQuery);
-                        final instructorMatch = c.instructor.toLowerCase().contains(_searchQuery);
-                        final moduleMatch = c.modules.any((m) =>
-                            m.title.toLowerCase().contains(_searchQuery) ||
-                            m.description.toLowerCase().contains(_searchQuery));
-                        return titleMatch || categoryMatch || instructorMatch || moduleMatch;
-                      }).toList();
-                    }
+                  // Apply Real-time Search Query Filter
+                  if (_searchQuery.isNotEmpty) {
+                    courses = courses.where((c) {
+                      final titleMatch = c.title.toLowerCase().contains(_searchQuery);
+                      final categoryMatch = c.category.toLowerCase().contains(_searchQuery);
+                      final instructorMatch = c.instructor.toLowerCase().contains(_searchQuery);
+                      final moduleMatch = c.modules.any((m) =>
+                          m.title.toLowerCase().contains(_searchQuery) ||
+                          m.description.toLowerCase().contains(_searchQuery));
+                      return titleMatch || categoryMatch || instructorMatch || moduleMatch;
+                    }).toList();
+                  }
 
-                    if (courses.isEmpty) {
-                      return _buildErrorOrEmptyState(
+                  if (courses.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: _buildErrorOrEmptyState(
                         context,
                         title: 'No Matching Courses Found',
                         message: _searchQuery.isNotEmpty
                             ? 'No courses matched "$_searchQuery". Try searching for topics like "Binary", "Logic", or "C++".'
                             : 'No courses match the selected category filter.',
                         showSeedOption: true,
-                      );
-                    }
-
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: crossAxisCount == 1 ? 1.1 : 0.82,
-                          ),
-                          itemCount: courses.length,
-                          itemBuilder: (context, index) {
-                            final course = courses[index];
-                            return _CourseCard(
-                              course: course,
-                              authService: _authService,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => CourseDetailScreen(course: course),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
+                      ),
                     );
-                  },
-                );
-              },
-            ),
+                  }
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: crossAxisCount == 1 ? 1.1 : 0.82,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final course = courses[index];
+                          return _CourseCard(
+                            course: course,
+                            authService: _authService,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CourseDetailScreen(course: course),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        childCount: courses.length,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

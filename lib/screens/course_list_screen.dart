@@ -17,12 +17,7 @@ import '../widgets/sql_sandbox_widget.dart';
 import '../widgets/student_badges_widget.dart';
 import '../widgets/subnet_calculator_widget.dart';
 import '../widgets/twos_complement_solver_widget.dart';
-import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
-import 'exam_cheat_sheet_screen.dart';
-import 'fbise_solved_exercises_screen.dart';
-import 'past_papers_screen.dart';
-import 'student_auth_dialog.dart';
 
 class CourseListScreen extends StatefulWidget {
   const CourseListScreen({super.key});
@@ -148,10 +143,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-                  );
+                  Navigator.pushNamed(context, '/admin');
                 },
               ),
               const SizedBox(height: 16),
@@ -179,10 +171,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                         label: const Text('Register / Login'),
                         onPressed: () {
                           Navigator.pop(context);
-                          showDialog(
-                            context: context,
-                            builder: (_) => const StudentAuthDialog(),
-                          );
+                          Navigator.pushNamed(context, '/login');
                         },
                       ),
                     )
@@ -249,32 +238,17 @@ class _CourseListScreenState extends State<CourseListScreen> {
           IconButton(
             icon: const Icon(Icons.quiz, color: Colors.white),
             tooltip: 'FBISE Solved Exercises',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FbiseSolvedExercisesScreen()),
-              );
-            },
+            onPressed: () => Navigator.pushNamed(context, '/solved-exercises'),
           ),
           IconButton(
             icon: const Icon(Icons.menu_book, color: Colors.white),
             tooltip: 'Exam Night Cheat Sheet',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
-              );
-            },
+            onPressed: () => Navigator.pushNamed(context, '/cheat-sheet'),
           ),
           IconButton(
             icon: const Icon(Icons.description, color: Colors.white),
             tooltip: 'Solved Board Past Papers',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PastPapersScreen()),
-              );
-            },
+            onPressed: () => Navigator.pushNamed(context, '/past-papers'),
           ),
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.white),
@@ -472,12 +446,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                                 avatar: const Icon(Icons.quiz, size: 16, color: Colors.white),
                                 backgroundColor: const Color(0xFF006633),
                                 label: const Text('FBISE Solved Exercises & Quizzes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const FbiseSolvedExercisesScreen()),
-                                  );
-                                },
+                                onPressed: () => Navigator.pushNamed(context, '/solved-exercises'),
                               ),
                             ),
                             Padding(
@@ -486,24 +455,14 @@ class _CourseListScreenState extends State<CourseListScreen> {
                                 avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
                                 backgroundColor: const Color(0xFF004D26),
                                 label: const Text('Exam Cheat Sheet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const ExamCheatSheetScreen()),
-                                  );
-                                },
+                                onPressed: () => Navigator.pushNamed(context, '/cheat-sheet'),
                               ),
                             ),
                             ActionChip(
                               avatar: const Icon(Icons.description, size: 16, color: Colors.white),
                               backgroundColor: const Color(0xFF004D26),
                               label: const Text('Solved Past Papers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const PastPapersScreen()),
-                                );
-                              },
+                              onPressed: () => Navigator.pushNamed(context, '/past-papers'),
                             ),
                           ],
                         ),

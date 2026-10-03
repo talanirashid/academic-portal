@@ -6,7 +6,7 @@ import '../services/payment_service.dart';
 import '../widgets/bilingual_tooltip_widget.dart';
 import '../widgets/kmap_solver_widget.dart';
 import '../widgets/logic_gate_simulator_widget.dart';
-import 'payment_submission_dialog.dart';
+import 'payment_submission_screen.dart';
 import 'pdf_viewer_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -152,9 +152,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => PaymentSubmissionDialog(course: widget.course),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PaymentSubmissionScreen(course: widget.course),
+                                ),
                               );
                             },
                             child: const Text('Unlock Access'),

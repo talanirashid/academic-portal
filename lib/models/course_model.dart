@@ -52,6 +52,7 @@ class Module {
   final String id;
   final String title;
   final String description;
+  final String author;
   final String youtubeVideoId;
   final String? pdfNotesUrl;
   final String duration;
@@ -62,6 +63,7 @@ class Module {
     required this.id,
     required this.title,
     this.description = '',
+    this.author = 'Rashid Talani, Lecturer Computer Science',
     required this.youtubeVideoId,
     this.pdfNotesUrl,
     this.duration = '',
@@ -76,6 +78,7 @@ class Module {
       id: id ?? map['id'] as String? ?? '',
       title: map['title'] as String? ?? 'Untitled Module',
       description: map['description'] as String? ?? '',
+      author: map['author'] as String? ?? 'Rashid Talani, Lecturer Computer Science',
       youtubeVideoId: map['youtubeVideoId'] as String? ??
           map['videoId'] as String? ??
           'dQw4w9WgXcQ',
@@ -96,6 +99,7 @@ class Module {
       'id': id,
       'title': title,
       'description': description,
+      'author': author,
       'youtubeVideoId': youtubeVideoId,
       'pdfNotesUrl': pdfNotesUrl,
       'notesPdfUrl': pdfNotesUrl,

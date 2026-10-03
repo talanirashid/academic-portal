@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
@@ -100,6 +101,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _launchExternalUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_blank',
+    )) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open link: $url')),
+        );
+      }
+    }
   }
 
   @override
@@ -220,7 +236,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ),
                   ),
 
-                  // Active Lecture Details & In-App PDF Action
+                  // Active Lecture Details & Keybook PDF Action
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -238,27 +254,52 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               style: TextStyle(color: Colors.grey[700], fontSize: 14),
                             ),
                           ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'Author: ${_activeModule!.author}',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF006633), fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 12),
                         ],
 
-                        // In-App Notes Viewer Action using SfPdfViewer
+                        // Keybook Buttons Row (In-App DRM & Open in New Tab with _blank)
                         if (_activeModule?.pdfNotesUrl != null && _activeModule!.pdfNotesUrl!.isNotEmpty)
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF006633),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            onPressed: () => _openInAppPdfViewer(
-                              _activeModule!.title,
-                              _activeModule!.pdfNotesUrl!,
-                            ),
-                            icon: const Icon(Icons.picture_as_pdf),
-                            label: const Text(
-                              'View Chapter Notes (In-App PDF)',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: [
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF006633),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () => _openInAppPdfViewer(
+                                  _activeModule!.title,
+                                  _activeModule!.pdfNotesUrl!,
+                                ),
+                                icon: const Icon(Icons.picture_as_pdf),
+                                label: const Text(
+                                  'Read Keybook (In-App DRM)',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF004D26),
+                                  side: const BorderSide(color: Color(0xFF006633)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () => _launchExternalUrl(_activeModule!.pdfNotesUrl!),
+                                icon: const Icon(Icons.open_in_new),
+                                label: const Text(
+                                  'Read Keybook / Open in New Tab',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                           ),
 
                         const Divider(height: 32, thickness: 1),

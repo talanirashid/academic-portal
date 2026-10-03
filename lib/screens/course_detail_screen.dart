@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
+import '../services/payment_service.dart';
 import '../widgets/bilingual_tooltip_widget.dart';
 import '../widgets/kmap_solver_widget.dart';
 import '../widgets/logic_gate_simulator_widget.dart';
+import 'payment_submission_dialog.dart';
 import 'pdf_viewer_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class CourseDetailScreen extends StatefulWidget {
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
   final AuthService _authService = AuthService();
+  final PaymentService _paymentService = PaymentService();
   late YoutubePlayerController _controller;
   Module? _activeModule;
   double _currentPlaybackSpeed = 1.0;
@@ -102,6 +105,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final activeQuizList = _activeModule?.quizQuestions ?? [];
+    final user = _authService.currentUser;
 
     return YoutubePlayerControllerProvider(
       controller: _controller,
@@ -111,262 +115,308 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           backgroundColor: const Color(0xFF006633),
           foregroundColor: Colors.white,
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Youtube Player Container
-              Container(
-                color: Colors.black,
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: YoutubePlayer(
-                    controller: _controller,
-                    aspectRatio: 16 / 9,
-                  ),
-                ),
-              ),
+        body: StreamBuilder<List<String>>(
+          stream: user != null
+              ? _paymentService.getEnrolledCoursesStream(user.uid)
+              : Stream.value([]),
+          builder: (context, enrollmentSnapshot) {
+            final enrolledCourses = enrollmentSnapshot.data ?? [];
+            final isUnlocked = _paymentService.isCourseUnlocked(
+              widget.course.id,
+              widget.course.isPaid,
+              enrolledCourses,
+            );
 
-              // Video Controls Bar (Previous, Playback Speed, Next)
-              Container(
-                color: const Color(0xFF00381B),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      style: TextButton.styleFrom(foregroundColor: Colors.white),
-                      onPressed: _navigateToPreviousModule,
-                      icon: const Icon(Icons.skip_previous),
-                      label: const Text('Previous'),
-                    ),
-                    Row(
-                      children: [
-                        const Text('Speed: ', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                        DropdownButton<double>(
-                          dropdownColor: const Color(0xFF00381B),
-                          value: _currentPlaybackSpeed,
-                          style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
-                          underline: const SizedBox(),
-                          items: const [
-                            DropdownMenuItem(value: 1.0, child: Text('1.0x')),
-                            DropdownMenuItem(value: 1.25, child: Text('1.25x')),
-                            DropdownMenuItem(value: 1.5, child: Text('1.5x')),
-                            DropdownMenuItem(value: 2.0, child: Text('2.0x')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) _setPlaybackRate(val);
-                          },
-                        ),
-                      ],
-                    ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(foregroundColor: Colors.white),
-                      onPressed: _navigateToNextModule,
-                      icon: const Icon(Icons.skip_next),
-                      label: const Text('Next'),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Active Lecture Details & In-App PDF Action
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_activeModule != null) ...[
-                      Text(
-                        _activeModule!.title,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      if (_activeModule!.description.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          _activeModule!.description,
-                          style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                    ],
-
-                    // In-App Notes Viewer Action using SfPdfViewer
-                    if (_activeModule?.pdfNotesUrl != null && _activeModule!.pdfNotesUrl!.isNotEmpty)
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF006633),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () => _openInAppPdfViewer(
-                          _activeModule!.title,
-                          _activeModule!.pdfNotesUrl!,
-                        ),
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: const Text(
-                          'View Chapter Notes (In-App PDF)',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-
-                    const Divider(height: 32, thickness: 1),
-
-                    // Interactive Logic Gate Simulator Widget
-                    const LogicGateSimulatorWidget(),
-
-                    const SizedBox(height: 16),
-
-                    // Interactive K-Map 2-Variable Solver Widget
-                    const KMapSolverWidget(),
-
-                    const SizedBox(height: 16),
-
-                    // Bilingual Technical Terms Glossary Widget
-                    const BilingualTooltipWidget(),
-
-                    const Divider(height: 32, thickness: 1),
-
-                    // Interactive Topic MCQs Practice Quiz Section
-                    if (activeQuizList.isNotEmpty) ...[
-                      Row(
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Paid Premium Course Locked Banner
+                  if (widget.course.isPaid && !isUnlocked)
+                    Container(
+                      color: Colors.amber[100],
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
                         children: [
-                          const Icon(Icons.quiz, color: Color(0xFF006633)),
+                          const Icon(Icons.lock, color: Color(0xFF004D26)),
                           const SizedBox(width: 8),
-                          Text(
-                            'Practice MCQs & Self-Assessment (${activeQuizList.length})',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          const Expanded(
+                            child: Text(
+                              'Premium Paid Course: Unlock full access via EasyPaisa or HBL Bank',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF004D26)),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF006633),
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => PaymentSubmissionDialog(course: widget.course),
+                              );
+                            },
+                            child: const Text('Unlock Access'),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      _buildInteractiveQuizCard(activeQuizList),
-                      const Divider(height: 32, thickness: 1),
-                    ],
-
-                    // Course Info Summary
-                    Text(
-                      'Course Overview',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF006633),
-                          ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.course.description,
-                      style: const TextStyle(fontSize: 14, height: 1.4),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        const Icon(Icons.person, size: 18, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text('Instructor: ${widget.course.instructor}',
-                            style: const TextStyle(fontWeight: FontWeight.w500)),
-                      ],
                     ),
 
-                    const Divider(height: 32, thickness: 1),
+                  // Youtube Player Container
+                  Container(
+                    color: Colors.black,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: YoutubePlayer(
+                        controller: _controller,
+                        aspectRatio: 16 / 9,
+                      ),
+                    ),
+                  ),
 
-                    // Chapter / Module List Header
-                    Row(
+                  // Video Controls Bar (Previous, Playback Speed, Next)
+                  Container(
+                    color: const Color(0xFF00381B),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Course Chapters (${widget.course.modules.length})',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(foregroundColor: Colors.white),
+                          onPressed: _navigateToPreviousModule,
+                          icon: const Icon(Icons.skip_previous),
+                          label: const Text('Previous'),
                         ),
-                        const Icon(Icons.list_alt, color: Color(0xFF006633)),
+                        Row(
+                          children: [
+                            const Text('Speed: ', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            DropdownButton<double>(
+                              dropdownColor: const Color(0xFF00381B),
+                              value: _currentPlaybackSpeed,
+                              style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(value: 1.0, child: Text('1.0x')),
+                                DropdownMenuItem(value: 1.25, child: Text('1.25x')),
+                                DropdownMenuItem(value: 1.5, child: Text('1.5x')),
+                                DropdownMenuItem(value: 2.0, child: Text('2.0x')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) _setPlaybackRate(val);
+                              },
+                            ),
+                          ],
+                        ),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(foregroundColor: Colors.white),
+                          onPressed: _navigateToNextModule,
+                          icon: const Icon(Icons.skip_next),
+                          label: const Text('Next'),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                  ),
 
-                    // Chapter List below the video with StreamBuilder Progress Checkboxes
-                    StreamBuilder<List<String>>(
-                      stream: _authService.getCompletedModulesStream(widget.course.id),
-                      builder: (context, progressSnapshot) {
-                        final completedModuleIds = progressSnapshot.data ?? [];
-
-                        if (widget.course.modules.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.0),
-                            child: Text(
-                              'No chapters available for this course yet.',
-                              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                  // Active Lecture Details & In-App PDF Action
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_activeModule != null) ...[
+                          Text(
+                            _activeModule!.title,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          if (_activeModule!.description.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              _activeModule!.description,
+                              style: TextStyle(color: Colors.grey[700], fontSize: 14),
                             ),
-                          );
-                        }
+                          ],
+                          const SizedBox(height: 12),
+                        ],
 
-                        return ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: widget.course.modules.length,
-                          separatorBuilder: (context, index) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final module = widget.course.modules[index];
-                            final isSelected = _activeModule?.id == module.id ||
-                                (_activeModule == null && index == 0);
-                            final isCompleted = completedModuleIds.contains(module.id);
+                        // In-App Notes Viewer Action using SfPdfViewer
+                        if (_activeModule?.pdfNotesUrl != null && _activeModule!.pdfNotesUrl!.isNotEmpty)
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF006633),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => _openInAppPdfViewer(
+                              _activeModule!.title,
+                              _activeModule!.pdfNotesUrl!,
+                            ),
+                            icon: const Icon(Icons.picture_as_pdf),
+                            label: const Text(
+                              'View Chapter Notes (In-App PDF)',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
 
-                            return Container(
-                              color: isSelected ? const Color(0xFF006633).withValues(alpha: 0.1) : null,
-                              child: ListTile(
-                                leading: IconButton(
-                                  icon: Icon(
-                                    isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                    color: isCompleted ? const Color(0xFF006633) : Colors.grey,
-                                  ),
-                                  tooltip: isCompleted ? 'Completed' : 'Mark Completed',
-                                  onPressed: () {
-                                    _authService.markChapterCompleted(
-                                      widget.course.id,
-                                      module.id,
-                                      completed: !isCompleted,
-                                    );
-                                  },
-                                ),
-                                title: Text(
-                                  module.title,
-                                  style: TextStyle(
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    decoration: isCompleted ? TextDecoration.lineThrough : null,
-                                  ),
-                                ),
-                                subtitle: module.duration.isNotEmpty
-                                    ? Text('Duration: ${module.duration}')
-                                    : null,
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (module.pdfNotesUrl != null && module.pdfNotesUrl!.isNotEmpty)
-                                      IconButton(
-                                        icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                                        tooltip: 'View PDF Notes',
-                                        onPressed: () => _openInAppPdfViewer(
-                                          module.title,
-                                          module.pdfNotesUrl!,
-                                        ),
-                                      ),
-                                    Icon(
-                                      isSelected ? Icons.play_circle_fill : Icons.play_circle_outline,
-                                      color: isSelected ? const Color(0xFF006633) : Colors.grey,
-                                    ),
-                                  ],
-                                ),
-                                onTap: () => _selectModule(module),
+                        const Divider(height: 32, thickness: 1),
+
+                        // Interactive Logic Gate Simulator Widget
+                        const LogicGateSimulatorWidget(),
+
+                        const SizedBox(height: 16),
+
+                        // Interactive K-Map 2-Variable Solver Widget
+                        const KMapSolverWidget(),
+
+                        const SizedBox(height: 16),
+
+                        // Bilingual Technical Terms Glossary Widget
+                        const BilingualTooltipWidget(),
+
+                        const Divider(height: 32, thickness: 1),
+
+                        // Interactive Topic MCQs Practice Quiz Section
+                        if (activeQuizList.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.quiz, color: Color(0xFF006633)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Practice MCQs & Self-Assessment (${activeQuizList.length})',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildInteractiveQuizCard(activeQuizList),
+                          const Divider(height: 32, thickness: 1),
+                        ],
+
+                        // Course Info Summary
+                        Text(
+                          'Course Overview',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF006633),
+                              ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          widget.course.description,
+                          style: const TextStyle(fontSize: 14, height: 1.4),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.person, size: 18, color: Colors.grey),
+                            const SizedBox(width: 6),
+                            Text('Instructor: ${widget.course.instructor}',
+                                style: const TextStyle(fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+
+                        const Divider(height: 32, thickness: 1),
+
+                        // Chapter / Module List Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Course Chapters (${widget.course.modules.length})',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const Icon(Icons.list_alt, color: Color(0xFF006633)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Chapter List below the video with StreamBuilder Progress Checkboxes
+                        StreamBuilder<List<String>>(
+                          stream: _authService.getCompletedModulesStream(widget.course.id),
+                          builder: (context, progressSnapshot) {
+                            final completedModuleIds = progressSnapshot.data ?? [];
+
+                            if (widget.course.modules.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16.0),
+                                child: Text(
+                                  'No chapters available for this course yet.',
+                                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                ),
+                              );
+                            }
+
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: widget.course.modules.length,
+                              separatorBuilder: (context, index) => const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final module = widget.course.modules[index];
+                                final isSelected = _activeModule?.id == module.id ||
+                                    (_activeModule == null && index == 0);
+                                final isCompleted = completedModuleIds.contains(module.id);
+
+                                return Container(
+                                  color: isSelected ? const Color(0xFF006633).withValues(alpha: 0.1) : null,
+                                  child: ListTile(
+                                    leading: IconButton(
+                                      icon: Icon(
+                                        isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                                        color: isCompleted ? const Color(0xFF006633) : Colors.grey,
+                                      ),
+                                      tooltip: isCompleted ? 'Completed' : 'Mark Completed',
+                                      onPressed: () {
+                                        _authService.markChapterCompleted(
+                                          widget.course.id,
+                                          module.id,
+                                          completed: !isCompleted,
+                                        );
+                                      },
+                                    ),
+                                    title: Text(
+                                      module.title,
+                                      style: TextStyle(
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                    subtitle: module.duration.isNotEmpty
+                                        ? Text('Duration: ${module.duration}')
+                                        : null,
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (module.pdfNotesUrl != null && module.pdfNotesUrl!.isNotEmpty)
+                                          IconButton(
+                                            icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                                            tooltip: 'View PDF Notes',
+                                            onPressed: () => _openInAppPdfViewer(
+                                              module.title,
+                                              module.pdfNotesUrl!,
+                                            ),
+                                          ),
+                                        Icon(
+                                          isSelected ? Icons.play_circle_fill : Icons.play_circle_outline,
+                                          color: isSelected ? const Color(0xFF006633) : Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () => _selectModule(module),
+                                  ),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

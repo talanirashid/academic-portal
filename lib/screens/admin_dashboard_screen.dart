@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'admin_payment_approval_screen.dart';
 
-/// Admin Dashboard Screen for managing curriculum content, lecture links, PDF keybooks, and quiz MCQs.
+/// Admin Dashboard Screen for managing curriculum content, lecture links, PDF keybooks, and payment verification.
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -103,6 +104,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         title: const Text('Admin Content Upload Panel'),
         backgroundColor: const Color(0xFF004D26),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.verified_user),
+            tooltip: 'Pending Payment Approvals',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminPaymentApprovalScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -111,6 +124,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Payment Verification Shortcut Banner
+              Card(
+                color: const Color(0xFF004D26),
+                child: ListTile(
+                  leading: const Icon(Icons.verified, color: Colors.amber, size: 32),
+                  title: const Text('Student TRX ID Payment Verification', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Approve or reject pending EasyPaisa and HBL Bank course unlocking requests', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminPaymentApprovalScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
               const Text(
                 'Publish New Course / Lecture Chapter',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),

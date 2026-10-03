@@ -100,10 +100,17 @@ class _CourseListScreenState extends State<CourseListScreen> {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366)),
-                title: const Text('Join WhatsApp Community'),
-                subtitle: const Text('Get instant study notes, test updates & support'),
-                trailing: const Icon(Icons.open_in_new, size: 18),
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF25D366),
+                  radius: 18,
+                  child: Icon(Icons.chat, color: Colors.white, size: 20),
+                ),
+                title: const Text(
+                  'Join Official WhatsApp Community',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text('Ask syllabus questions, get past papers & updates'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 onTap: () {
                   Navigator.pop(context);
                   _launchUrl(_whatsappCommunityUrl);

@@ -20,6 +20,7 @@ import '../widgets/twos_complement_solver_widget.dart';
 import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
 import 'exam_cheat_sheet_screen.dart';
+import 'fbise_solved_exercises_screen.dart';
 import 'past_papers_screen.dart';
 import 'student_auth_dialog.dart';
 
@@ -246,6 +247,16 @@ class _CourseListScreenState extends State<CourseListScreen> {
         elevation: 2,
         actions: [
           IconButton(
+            icon: const Icon(Icons.quiz, color: Colors.white),
+            tooltip: 'FBISE Solved Exercises',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FbiseSolvedExercisesScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.menu_book, color: Colors.white),
             tooltip: 'Exam Night Cheat Sheet',
             onPressed: () {
@@ -458,8 +469,22 @@ class _CourseListScreenState extends State<CourseListScreen> {
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: ActionChip(
-                                avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
+                                avatar: const Icon(Icons.quiz, size: 16, color: Colors.white),
                                 backgroundColor: const Color(0xFF006633),
+                                label: const Text('FBISE Solved Exercises & Quizzes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const FbiseSolvedExercisesScreen()),
+                                  );
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ActionChip(
+                                avatar: const Icon(Icons.menu_book, size: 16, color: Colors.white),
+                                backgroundColor: const Color(0xFF004D26),
                                 label: const Text('Exam Cheat Sheet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                 onPressed: () {
                                   Navigator.push(

@@ -1,5 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Helper to safely convert any Map object to `Map<String, dynamic>` across Dart Web and Native.
+Map<String, dynamic> _asMap(dynamic item) {
+  if (item is Map) {
+    return item.map((k, v) => MapEntry(k.toString(), v));
+  }
+  return <String, dynamic>{};
+}
+
 /// Model representing a topic MCQ question for self-assessment.
 class QuizQuestion {
   final String id;
@@ -16,7 +24,8 @@ class QuizQuestion {
     this.explanation = '',
   });
 
-  factory QuizQuestion.fromMap(Map<String, dynamic> map, {String? id}) {
+  factory QuizQuestion.fromMap(Map<String, dynamic> rawMap, {String? id}) {
+    final map = _asMap(rawMap);
     final opts = map['options'] as List<dynamic>? ?? [];
     return QuizQuestion(
       id: id ?? map['id'] as String? ?? '',
@@ -60,7 +69,8 @@ class Module {
     this.quizQuestions = const [],
   });
 
-  factory Module.fromMap(Map<String, dynamic> map, {String? id}) {
+  factory Module.fromMap(Map<String, dynamic> rawMap, {String? id}) {
+    final map = _asMap(rawMap);
     final quizData = map['quizQuestions'] as List<dynamic>? ?? map['quiz'] as List<dynamic>? ?? [];
     return Module(
       id: id ?? map['id'] as String? ?? '',
@@ -75,8 +85,8 @@ class Module {
       duration: map['duration'] as String? ?? '',
       orderIndex: (map['orderIndex'] as num?)?.toInt() ?? 0,
       quizQuestions: quizData
-          .whereType<Map<String, dynamic>>()
-          .map((q) => QuizQuestion.fromMap(q))
+          .whereType<Map>()
+          .map((q) => QuizQuestion.fromMap(_asMap(q)))
           .toList(),
     );
   }
@@ -123,7 +133,7 @@ class Course {
   });
 
   factory Course.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data() ?? {};
+    final data = _asMap(doc.data());
     final modulesData = data['modules'] as List<dynamic>? ?? [];
     return Course(
       id: doc.id,
@@ -140,8 +150,8 @@ class Course {
       rating: (data['rating'] as num?)?.toDouble() ?? 4.8,
       isPaid: data['isPaid'] as bool? ?? false,
       modules: modulesData
-          .whereType<Map<String, dynamic>>()
-          .map((m) => Module.fromMap(m))
+          .whereType<Map>()
+          .map((m) => Module.fromMap(_asMap(m)))
           .toList(),
     );
   }
@@ -149,29 +159,30 @@ class Course {
   /// Asynchronously loads a course doc along with its sub-collection `/courses/{id}/modules`
   static Future<Course> fromFirestoreWithSubcollections(
       DocumentSnapshot<Map<String, dynamic>> doc) async {
-    final data = doc.data() ?? {};
+    final data = _asMap(doc.data());
     List<Module> modulesList = [];
 
     // First try top-level modules array
     if (data['modules'] is List && (data['modules'] as List).isNotEmpty) {
-      modulesList = (data['modules'] as List)
-          .whereType<Map<String, dynamic>>()
-          .map((m) => Module.fromMap(m))
+      final rawList = data['modules'] as List;
+      modulesList = rawList
+          .whereType<Map>()
+          .map((m) => Module.fromMap(_asMap(m)))
           .toList();
     }
 
-    // Also query sub-collection `/courses/{id}/modules`
+    // Query sub-collection `/courses/{id}/modules` safely without requiring compound index
     try {
-      final subSnap = await doc.reference
-          .collection('modules')
-          .orderBy('orderIndex', descending: false)
-          .get();
+      final subSnap = await doc.reference.collection('modules').get();
 
       if (subSnap.docs.isNotEmpty) {
         final subModules = subSnap.docs.map((subDoc) {
-          final mData = subDoc.data();
+          final mData = _asMap(subDoc.data());
           return Module.fromMap(mData, id: subDoc.id);
         }).toList();
+
+        // Sort in memory by orderIndex
+        subModules.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
         if (modulesList.isEmpty) {
           modulesList = subModules;
@@ -185,7 +196,7 @@ class Course {
         }
       }
     } catch (_) {
-      // Ignore error if sub-collection query is unavailable
+      // Catch any unexpected query errors silently
     }
 
     return Course(

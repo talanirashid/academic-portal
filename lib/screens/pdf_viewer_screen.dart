@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/google_drive_helper.dart';
 
 /// Screen for viewing PDF lecture notes in-app with anti-piracy dynamic watermark jitter.
 class PdfViewerScreen extends StatefulWidget {
@@ -58,7 +59,8 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   }
 
   Future<void> _openExternal() async {
-    final Uri uri = Uri.parse(widget.pdfUrl);
+    final directUrl = GoogleDriveHelper.getDirectStreamUrl(widget.pdfUrl);
+    final Uri uri = Uri.parse(directUrl);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -70,6 +72,8 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final directStreamUrl = GoogleDriveHelper.getDirectStreamUrl(widget.pdfUrl);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -88,9 +92,9 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
       ),
       body: Stack(
         children: [
-          // PDF Viewer
+          // PDF Viewer (Supporting direct Google Drive streamable URLs)
           SfPdfViewer.network(
-            widget.pdfUrl,
+            directStreamUrl,
             controller: _pdfViewerController,
             onDocumentLoaded: (PdfDocumentLoadedDetails details) {
               setState(() {

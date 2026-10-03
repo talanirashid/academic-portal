@@ -8,6 +8,7 @@ class Module {
   final String youtubeVideoId;
   final String? pdfNotesUrl;
   final String duration;
+  final int orderIndex;
 
   Module({
     required this.id,
@@ -16,6 +17,7 @@ class Module {
     required this.youtubeVideoId,
     this.pdfNotesUrl,
     this.duration = '',
+    this.orderIndex = 0,
   });
 
   factory Module.fromMap(Map<String, dynamic> map, {String? id}) {
@@ -23,9 +25,14 @@ class Module {
       id: id ?? map['id'] as String? ?? '',
       title: map['title'] as String? ?? 'Untitled Module',
       description: map['description'] as String? ?? '',
-      youtubeVideoId: map['youtubeVideoId'] as String? ?? map['videoId'] as String? ?? '',
-      pdfNotesUrl: map['pdfNotesUrl'] as String? ?? map['notesUrl'] as String?,
+      youtubeVideoId: map['youtubeVideoId'] as String? ??
+          map['videoId'] as String? ??
+          'dQw4w9WgXcQ',
+      pdfNotesUrl: map['pdfNotesUrl'] as String? ??
+          map['notesPdfUrl'] as String? ??
+          map['notesUrl'] as String?,
       duration: map['duration'] as String? ?? '',
+      orderIndex: (map['orderIndex'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -36,7 +43,9 @@ class Module {
       'description': description,
       'youtubeVideoId': youtubeVideoId,
       'pdfNotesUrl': pdfNotesUrl,
+      'notesPdfUrl': pdfNotesUrl,
       'duration': duration,
+      'orderIndex': orderIndex,
     };
   }
 }
@@ -49,7 +58,9 @@ class Course {
   final String instructor;
   final String thumbnailUrl;
   final String category;
+  final String grade;
   final double rating;
+  final bool isPaid;
   final List<Module> modules;
 
   Course({
@@ -59,7 +70,9 @@ class Course {
     required this.instructor,
     required this.thumbnailUrl,
     required this.category,
-    this.rating = 0.0,
+    this.grade = '',
+    this.rating = 4.8,
+    this.isPaid = false,
     required this.modules,
   });
 
@@ -70,10 +83,16 @@ class Course {
       id: doc.id,
       title: data['title'] as String? ?? 'Untitled Course',
       description: data['description'] as String? ?? '',
-      instructor: data['instructor'] as String? ?? 'Unknown Instructor',
-      thumbnailUrl: data['thumbnailUrl'] as String? ?? '',
-      category: data['category'] as String? ?? 'General Education',
-      rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
+      instructor: data['instructor'] as String? ?? 'Prof. Tariq Mahmood',
+      thumbnailUrl: data['thumbnailUrl'] as String? ??
+          data['bannerUrl'] as String? ??
+          '',
+      category: data['category'] as String? ??
+          data['subject'] as String? ??
+          'ICS / CS',
+      grade: data['grade'] as String? ?? '',
+      rating: (data['rating'] as num?)?.toDouble() ?? 4.8,
+      isPaid: data['isPaid'] as bool? ?? false,
       modules: modulesData
           .whereType<Map<String, dynamic>>()
           .map((m) => Module.fromMap(m))
@@ -81,20 +100,63 @@ class Course {
     );
   }
 
-  factory Course.fromMap(Map<String, dynamic> map, String id) {
-    final modulesData = map['modules'] as List<dynamic>? ?? [];
-    return Course(
-      id: id,
-      title: map['title'] as String? ?? 'Untitled Course',
-      description: map['description'] as String? ?? '',
-      instructor: map['instructor'] as String? ?? 'Unknown Instructor',
-      thumbnailUrl: map['thumbnailUrl'] as String? ?? '',
-      category: map['category'] as String? ?? 'General Education',
-      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
-      modules: modulesData
+  /// Asynchronously loads a course doc along with its sub-collection `/courses/{id}/modules`
+  static Future<Course> fromFirestoreWithSubcollections(
+      DocumentSnapshot<Map<String, dynamic>> doc) async {
+    final data = doc.data() ?? {};
+    List<Module> modulesList = [];
+
+    // First try top-level modules array
+    if (data['modules'] is List && (data['modules'] as List).isNotEmpty) {
+      modulesList = (data['modules'] as List)
           .whereType<Map<String, dynamic>>()
           .map((m) => Module.fromMap(m))
-          .toList(),
+          .toList();
+    }
+
+    // Also query sub-collection `/courses/{id}/modules`
+    try {
+      final subSnap = await doc.reference
+          .collection('modules')
+          .orderBy('orderIndex', descending: false)
+          .get();
+
+      if (subSnap.docs.isNotEmpty) {
+        final subModules = subSnap.docs.map((subDoc) {
+          final mData = subDoc.data();
+          return Module.fromMap(mData, id: subDoc.id);
+        }).toList();
+
+        if (modulesList.isEmpty) {
+          modulesList = subModules;
+        } else {
+          final existingIds = modulesList.map((m) => m.id).toSet();
+          for (var sm in subModules) {
+            if (!existingIds.contains(sm.id)) {
+              modulesList.add(sm);
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore error if sub-collection query is unavailable
+    }
+
+    return Course(
+      id: doc.id,
+      title: data['title'] as String? ?? 'Untitled Course',
+      description: data['description'] as String? ?? '',
+      instructor: data['instructor'] as String? ?? 'Prof. Tariq Mahmood',
+      thumbnailUrl: data['thumbnailUrl'] as String? ??
+          data['bannerUrl'] as String? ??
+          '',
+      category: data['category'] as String? ??
+          data['subject'] as String? ??
+          'ICS / CS',
+      grade: data['grade'] as String? ?? '',
+      rating: (data['rating'] as num?)?.toDouble() ?? 4.8,
+      isPaid: data['isPaid'] as bool? ?? false,
+      modules: modulesList,
     );
   }
 
@@ -104,8 +166,12 @@ class Course {
       'description': description,
       'instructor': instructor,
       'thumbnailUrl': thumbnailUrl,
+      'bannerUrl': thumbnailUrl,
       'category': category,
+      'subject': category,
+      'grade': grade,
       'rating': rating,
+      'isPaid': isPaid,
       'modules': modules.map((m) => m.toMap()).toList(),
     };
   }

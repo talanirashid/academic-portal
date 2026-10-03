@@ -4,12 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'screens/course_list_screen.dart';
 import 'services/auth_service.dart';
+import 'services/mock_data_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Force seed sample courses into Firestore immediately on startup
+  await MockDataService.forceSeedDatabase();
 
   // Auto-ensure anonymous student user session on startup if not logged in
   final authService = AuthService();

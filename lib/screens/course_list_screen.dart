@@ -27,18 +27,14 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
   Future<void> _handleSeedCourses() async {
     setState(() => _isSeeding = true);
-    final seeded = await MockDataService.seedSampleCourses();
+    await MockDataService.forceSeedDatabase();
     setState(() => _isSeeding = false);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            seeded
-                ? 'Sample courses seeded successfully into Firestore!'
-                : 'Courses already exist in Firestore collection.',
-          ),
-          backgroundColor: const Color(0xFF006633),
+        const SnackBar(
+          content: Text('Sample courses and subcollection modules seeded successfully!'),
+          backgroundColor: Color(0xFF006633),
         ),
       );
     }
@@ -266,14 +262,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 }
 
                 final docs = snapshot.data?.docs ?? [];
-                var courses = docs.map((doc) => Course.fromFirestore(doc)).toList();
-
-                // Apply Category Filter if not 'All'
-                if (_selectedCategory != 'All') {
-                  courses = courses.where((c) => c.category.contains(_selectedCategory)).toList();
-                }
-
-                if (courses.isEmpty) {
+                if (docs.isEmpty) {
                   return _buildErrorOrEmptyState(
                     context,
                     title: 'No Courses Available',
@@ -283,27 +272,58 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   );
                 }
 
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: crossAxisCount == 1 ? 1.2 : 0.85,
-                      ),
-                      itemCount: courses.length,
-                      itemBuilder: (context, index) {
-                        final course = courses[index];
-                        return _CourseCard(
-                          course: course,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CourseDetailScreen(course: course),
-                              ),
+                return FutureBuilder<List<Course>>(
+                  future: Future.wait(docs.map((doc) => Course.fromFirestoreWithSubcollections(doc))),
+                  builder: (context, coursesSnapshot) {
+                    if (coursesSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF006633)),
+                      );
+                    }
+
+                    var courses = coursesSnapshot.data ?? [];
+
+                    // Apply Category Filter if not 'All'
+                    if (_selectedCategory != 'All') {
+                      courses = courses
+                          .where((c) =>
+                              c.category.contains(_selectedCategory) ||
+                              c.grade.contains(_selectedCategory))
+                          .toList();
+                    }
+
+                    if (courses.isEmpty) {
+                      return _buildErrorOrEmptyState(
+                        context,
+                        title: 'No Courses in Category',
+                        message: 'No courses match the selected category filter.',
+                        showSeedOption: true,
+                      );
+                    }
+
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: crossAxisCount == 1 ? 1.2 : 0.85,
+                          ),
+                          itemCount: courses.length,
+                          itemBuilder: (context, index) {
+                            final course = courses[index];
+                            return _CourseCard(
+                              course: course,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CourseDetailScreen(course: course),
+                                  ),
+                                );
+                              },
                             );
                           },
                         );

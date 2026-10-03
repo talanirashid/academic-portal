@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
+import '../widgets/bilingual_tooltip_widget.dart';
+import '../widgets/logic_gate_simulator_widget.dart';
 import 'pdf_viewer_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   final AuthService _authService = AuthService();
   late YoutubePlayerController _controller;
   Module? _activeModule;
+  double _currentPlaybackSpeed = 1.0;
 
   // Track quiz selections: questionId -> selectedOptionIndex
   final Map<String, int> _quizAnswers = {};
@@ -53,6 +56,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     });
     if (module.youtubeVideoId.isNotEmpty) {
       _controller.loadVideoById(videoId: module.youtubeVideoId);
+    }
+  }
+
+  void _setPlaybackRate(double speed) {
+    setState(() {
+      _currentPlaybackSpeed = speed;
+    });
+    _controller.setPlaybackRate(speed);
+  }
+
+  void _navigateToNextModule() {
+    if (_activeModule == null || widget.course.modules.isEmpty) return;
+    final currentIndex = widget.course.modules.indexWhere((m) => m.id == _activeModule!.id);
+    if (currentIndex != -1 && currentIndex < widget.course.modules.length - 1) {
+      _selectModule(widget.course.modules[currentIndex + 1]);
+    }
+  }
+
+  void _navigateToPreviousModule() {
+    if (_activeModule == null || widget.course.modules.isEmpty) return;
+    final currentIndex = widget.course.modules.indexWhere((m) => m.id == _activeModule!.id);
+    if (currentIndex > 0) {
+      _selectModule(widget.course.modules[currentIndex - 1]);
     }
   }
 
@@ -100,6 +126,49 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
               ),
 
+              // Video Controls Bar (Previous, Playback Speed, Next)
+              Container(
+                color: const Color(0xFF00381B),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: Colors.white),
+                      onPressed: _navigateToPreviousModule,
+                      icon: const Icon(Icons.skip_previous),
+                      label: const Text('Previous'),
+                    ),
+                    Row(
+                      children: [
+                        const Text('Speed: ', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        DropdownButton<double>(
+                          dropdownColor: const Color(0xFF00381B),
+                          value: _currentPlaybackSpeed,
+                          style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                          underline: const SizedBox(),
+                          items: const [
+                            DropdownMenuItem(value: 1.0, child: Text('1.0x')),
+                            DropdownMenuItem(value: 1.25, child: Text('1.25x')),
+                            DropdownMenuItem(value: 1.5, child: Text('1.5x')),
+                            DropdownMenuItem(value: 2.0, child: Text('2.0x')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) _setPlaybackRate(val);
+                          },
+                        ),
+                      ],
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: Colors.white),
+                      onPressed: _navigateToNextModule,
+                      icon: const Icon(Icons.skip_next),
+                      label: const Text('Next'),
+                    ),
+                  ],
+                ),
+              ),
+
               // Active Lecture Details & In-App PDF Action
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -140,6 +209,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
+
+                    const Divider(height: 32, thickness: 1),
+
+                    // Interactive Logic Gate Simulator Widget
+                    const LogicGateSimulatorWidget(),
+
+                    const SizedBox(height: 16),
+
+                    // Bilingual Technical Terms Glossary Widget
+                    const BilingualTooltipWidget(),
 
                     const Divider(height: 32, thickness: 1),
 
@@ -198,73 +277,85 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Chapter List below the video
-                    if (widget.course.modules.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Text(
-                          'No chapters available for this course yet.',
-                          style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-                        ),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: widget.course.modules.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final module = widget.course.modules[index];
-                          final isSelected = _activeModule?.id == module.id ||
-                              (_activeModule == null && index == 0);
+                    // Chapter List below the video with StreamBuilder Progress Checkboxes
+                    StreamBuilder<List<String>>(
+                      stream: _authService.getCompletedModulesStream(widget.course.id),
+                      builder: (context, progressSnapshot) {
+                        final completedModuleIds = progressSnapshot.data ?? [];
 
-                          return Container(
-                            color: isSelected ? const Color(0xFF006633).withValues(alpha: 0.1) : null,
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: isSelected
-                                    ? const Color(0xFF006633)
-                                    : Colors.grey[200],
-                                child: Text(
-                                  '${index + 1}',
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                module.title,
-                                style: TextStyle(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-                              subtitle: module.duration.isNotEmpty
-                                  ? Text('Duration: ${module.duration}')
-                                  : null,
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (module.pdfNotesUrl != null && module.pdfNotesUrl!.isNotEmpty)
-                                    IconButton(
-                                      icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                                      tooltip: 'View PDF Notes',
-                                      onPressed: () => _openInAppPdfViewer(
-                                        module.title,
-                                        module.pdfNotesUrl!,
-                                      ),
-                                    ),
-                                  Icon(
-                                    isSelected ? Icons.play_circle_fill : Icons.play_circle_outline,
-                                    color: isSelected ? const Color(0xFF006633) : Colors.grey,
-                                  ),
-                                ],
-                              ),
-                              onTap: () => _selectModule(module),
+                        if (widget.course.modules.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Text(
+                              'No chapters available for this course yet.',
+                              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
                             ),
                           );
-                        },
-                      ),
+                        }
+
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: widget.course.modules.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final module = widget.course.modules[index];
+                            final isSelected = _activeModule?.id == module.id ||
+                                (_activeModule == null && index == 0);
+                            final isCompleted = completedModuleIds.contains(module.id);
+
+                            return Container(
+                              color: isSelected ? const Color(0xFF006633).withValues(alpha: 0.1) : null,
+                              child: ListTile(
+                                leading: IconButton(
+                                  icon: Icon(
+                                    isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                                    color: isCompleted ? const Color(0xFF006633) : Colors.grey,
+                                  ),
+                                  tooltip: isCompleted ? 'Completed' : 'Mark Completed',
+                                  onPressed: () {
+                                    _authService.markChapterCompleted(
+                                      widget.course.id,
+                                      module.id,
+                                      completed: !isCompleted,
+                                    );
+                                  },
+                                ),
+                                title: Text(
+                                  module.title,
+                                  style: TextStyle(
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                  ),
+                                ),
+                                subtitle: module.duration.isNotEmpty
+                                    ? Text('Duration: ${module.duration}')
+                                    : null,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (module.pdfNotesUrl != null && module.pdfNotesUrl!.isNotEmpty)
+                                      IconButton(
+                                        icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                                        tooltip: 'View PDF Notes',
+                                        onPressed: () => _openInAppPdfViewer(
+                                          module.title,
+                                          module.pdfNotesUrl!,
+                                        ),
+                                      ),
+                                    Icon(
+                                      isSelected ? Icons.play_circle_fill : Icons.play_circle_outline,
+                                      color: isSelected ? const Color(0xFF006633) : Colors.grey,
+                                    ),
+                                  ],
+                                ),
+                                onTap: () => _selectModule(module),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),

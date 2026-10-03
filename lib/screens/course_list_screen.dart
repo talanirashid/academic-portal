@@ -5,7 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
+import 'admin_dashboard_screen.dart';
 import 'course_detail_screen.dart';
+import 'past_papers_screen.dart';
 
 class CourseListScreen extends StatefulWidget {
   const CourseListScreen({super.key});
@@ -33,7 +35,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
   static const String _whatsappCommunityUrl =
       'https://whatsapp.com/channel/0029Va9PCSA';
   static const String _apkDownloadUrl =
-      'https://github.com/talanirashid/academic-portal/releases';
+      'https://github.com/talanirashid/academic-portal/releases/download/v1.0.0/PCSA-Academic-Portal-v1.0.0-arm64.apk';
 
   @override
   void dispose() {
@@ -114,6 +116,27 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 onTap: () {
                   Navigator.pop(context);
                   _launchUrl(_whatsappCommunityUrl);
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF004D26),
+                  radius: 18,
+                  child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
+                ),
+                title: const Text(
+                  'Admin Content Panel',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text('Publish new courses, video links & PDF keybooks'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                  );
                 },
               ),
               const SizedBox(height: 16),
@@ -206,6 +229,16 @@ class _CourseListScreenState extends State<CourseListScreen> {
         backgroundColor: const Color(0xFF004D26),
         elevation: 2,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.description, color: Colors.white),
+            tooltip: 'Solved Board Past Papers',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PastPapersScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.white),
             tooltip: 'Student Account Session',
@@ -363,32 +396,45 @@ class _CourseListScreenState extends State<CourseListScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Category Filter Chips
+                // Category Filter Chips & Past Papers Quick Button
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: _categories.map((category) {
-                      final isSelected = _selectedCategory == category;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ChoiceChip(
-                          label: Text(category),
-                          selected: isSelected,
-                          selectedColor: const Color(0xFF006633),
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    children: [
+                      ..._categories.map((category) {
+                        final isSelected = _selectedCategory == category;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ChoiceChip(
+                            label: Text(category),
+                            selected: isSelected,
+                            selectedColor: const Color(0xFF006633),
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _selectedCategory = category;
+                                });
+                              }
+                            },
                           ),
-                          onSelected: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _selectedCategory = category;
-                              });
-                            }
-                          },
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }),
+                      ActionChip(
+                        avatar: const Icon(Icons.description, size: 16, color: Colors.white),
+                        backgroundColor: const Color(0xFF004D26),
+                        label: const Text('Solved Past Papers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PastPapersScreen()),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -477,13 +523,14 @@ class _CourseListScreenState extends State<CourseListScreen> {
                             crossAxisCount: crossAxisCount,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: crossAxisCount == 1 ? 1.2 : 0.85,
+                            childAspectRatio: crossAxisCount == 1 ? 1.1 : 0.82,
                           ),
                           itemCount: courses.length,
                           itemBuilder: (context, index) {
                             final course = courses[index];
                             return _CourseCard(
                               course: course,
+                              authService: _authService,
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -566,12 +613,19 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
 class _CourseCard extends StatelessWidget {
   final Course course;
+  final AuthService authService;
   final VoidCallback onTap;
 
-  const _CourseCard({required this.course, required this.onTap});
+  const _CourseCard({
+    required this.course,
+    required this.authService,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final totalModules = course.modules.isEmpty ? 1 : course.modules.length;
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -636,17 +690,43 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                     const Spacer(),
-                    // Modules Count Footer
-                    Row(
-                      children: [
-                        const Icon(Icons.video_library, size: 16, color: Color(0xFF006633)),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${course.modules.length} Modules / Chapters',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    )
+
+                    // Progress Bar Indicator
+                    StreamBuilder<List<String>>(
+                      stream: authService.getCompletedModulesStream(course.id),
+                      builder: (context, progressSnapshot) {
+                        final completedList = progressSnapshot.data ?? [];
+                        final completedCount = completedList.length;
+                        final percent = (completedCount / totalModules).clamp(0.0, 1.0);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '$completedCount of ${course.modules.length} Completed',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF006633)),
+                                ),
+                                Text(
+                                  '${(percent * 100).toInt()}%',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            LinearProgressIndicator(
+                              value: percent,
+                              backgroundColor: Colors.grey[200],
+                              color: const Color(0xFF006633),
+                              minHeight: 6,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),

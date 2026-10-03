@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Service managing student authentication and user profiles in Cloud Firestore.
+/// Service managing student authentication, profile syncing, and learning progress tracking in Cloud Firestore.
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -34,6 +34,49 @@ class AuthService {
         'lastLogin': FieldValue.serverTimestamp(),
       });
     }
+  }
+
+  /// Toggle or mark a chapter/module as completed in `/users/{uid}/progress/{courseId}`.
+  Future<void> markChapterCompleted(String courseId, String moduleId, {bool completed = true}) async {
+    final user = currentUser;
+    if (user == null) return;
+
+    final progressRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('progress')
+        .doc(courseId);
+
+    if (completed) {
+      await progressRef.set({
+        'completedModules': FieldValue.arrayUnion([moduleId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else {
+      await progressRef.set({
+        'completedModules': FieldValue.arrayRemove([moduleId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+  }
+
+  /// Stream of completed module IDs for a given course under `/users/{uid}/progress/{courseId}`.
+  Stream<List<String>> getCompletedModulesStream(String courseId) {
+    final user = currentUser;
+    if (user == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('progress')
+        .doc(courseId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) return [];
+      final data = snapshot.data();
+      final list = data?['completedModules'] as List<dynamic>? ?? [];
+      return list.map((e) => e.toString()).toList();
+    });
   }
 
   /// Sign in anonymously for instant guest student access.

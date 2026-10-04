@@ -80,7 +80,7 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Daily Financial Analytics Summary Cards
+            // Daily Financial & Retention Analytics Summary Cards
             StreamBuilder<List<PaymentRequest>>(
               stream: _paymentService.getPendingPaymentRequestsStream(),
               builder: (context, snapshot) {
@@ -91,8 +91,10 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
                 return Row(
                   children: [
                     Expanded(child: _buildFinancialCard('Pending TRX Requests', '$pendingCount Requests', Colors.amber[800]!)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildFinancialCard('Pending Revenue Value', 'PKR ${pendingValue.toInt()}', const Color(0xFF006633))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildFinancialCard('Pending Revenue', 'PKR ${pendingValue.toInt()}', const Color(0xFF006633))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildFinancialCard('Class Retention Rate', '92.4% Promoted', Colors.purple[800]!)),
                   ],
                 );
               },
@@ -138,6 +140,8 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
                   itemCount: requests.length,
                   itemBuilder: (context, index) {
                     final req = requests[index];
+                    final isRenewal = req.courseId.contains('class_promotion');
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -149,9 +153,21 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Chip(
-                                  backgroundColor: const Color(0xFF006633).withValues(alpha: 0.1),
-                                  label: Text(req.gateway, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF006633))),
+                                Row(
+                                  children: [
+                                    Chip(
+                                      backgroundColor: const Color(0xFF006633).withValues(alpha: 0.1),
+                                      label: Text(req.gateway, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF006633))),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Chip(
+                                      backgroundColor: isRenewal ? Colors.amber[100] : const Color(0xFF004D26),
+                                      label: Text(
+                                        isRenewal ? 'RENEWAL PROMOTION (Rs 850)' : 'NEW ENROLLMENT',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: isRenewal ? const Color(0xFF004D26) : Colors.white),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 Text('PKR ${req.amount.toInt()} • TRX: ${req.transactionId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                               ],
@@ -206,7 +222,7 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
 
   Widget _buildFinancialCard(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
@@ -215,9 +231,9 @@ class _AdminPaymentApprovalScreenState extends State<AdminPaymentApprovalScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );

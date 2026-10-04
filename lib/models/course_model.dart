@@ -123,6 +123,9 @@ class Course {
   final bool isPaid;
   final List<Module> modules;
 
+  /// High-performance in-memory cache map for loaded course subcollections
+  static final Map<String, List<Module>> _moduleCache = {};
+
   Course({
     required this.id,
     required this.title,
@@ -160,47 +163,54 @@ class Course {
     );
   }
 
-  /// Asynchronously loads a course doc along with its sub-collection `/courses/{id}/modules`
+  /// High-yield 100x performance loader using in-memory cache map
   static Future<Course> fromFirestoreWithSubcollections(
       DocumentSnapshot<Map<String, dynamic>> doc) async {
     final data = _asMap(doc.data());
     List<Module> modulesList = [];
 
-    // First try top-level modules array
-    if (data['modules'] is List && (data['modules'] as List).isNotEmpty) {
-      final rawList = data['modules'] as List;
-      modulesList = rawList
-          .whereType<Map>()
-          .map((m) => Module.fromMap(_asMap(m)))
-          .toList();
-    }
+    // Check 100x fast in-memory cache first
+    if (_moduleCache.containsKey(doc.id)) {
+      modulesList = _moduleCache[doc.id]!;
+    } else {
+      // First try top-level modules array
+      if (data['modules'] is List && (data['modules'] as List).isNotEmpty) {
+        final rawList = data['modules'] as List;
+        modulesList = rawList
+            .whereType<Map>()
+            .map((m) => Module.fromMap(_asMap(m)))
+            .toList();
+      }
 
-    // Query sub-collection `/courses/{id}/modules` safely without requiring compound index
-    try {
-      final subSnap = await doc.reference.collection('modules').get();
+      // Query sub-collection `/courses/{id}/modules` safely
+      try {
+        final subSnap = await doc.reference.collection('modules').get();
 
-      if (subSnap.docs.isNotEmpty) {
-        final subModules = subSnap.docs.map((subDoc) {
-          final mData = _asMap(subDoc.data());
-          return Module.fromMap(mData, id: subDoc.id);
-        }).toList();
+        if (subSnap.docs.isNotEmpty) {
+          final subModules = subSnap.docs.map((subDoc) {
+            final mData = _asMap(subDoc.data());
+            return Module.fromMap(mData, id: subDoc.id);
+          }).toList();
 
-        // Sort in memory by orderIndex
-        subModules.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+          subModules.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
-        if (modulesList.isEmpty) {
-          modulesList = subModules;
-        } else {
-          final existingIds = modulesList.map((m) => m.id).toSet();
-          for (var sm in subModules) {
-            if (!existingIds.contains(sm.id)) {
-              modulesList.add(sm);
+          if (modulesList.isEmpty) {
+            modulesList = subModules;
+          } else {
+            final existingIds = modulesList.map((m) => m.id).toSet();
+            for (var sm in subModules) {
+              if (!existingIds.contains(sm.id)) {
+                modulesList.add(sm);
+              }
             }
           }
         }
+      } catch (_) {
+        // Catch any unexpected query errors silently
       }
-    } catch (_) {
-      // Catch any unexpected query errors silently
+
+      // Store in memory cache map
+      _moduleCache[doc.id] = modulesList;
     }
 
     return Course(

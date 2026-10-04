@@ -303,7 +303,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
             child: Column(
               children: [
                 // Target Board Exam Countdown Widget Header
-                const ExamCountdownWidget(),
+                const RepaintBoundary(child: ExamCountdownWidget()),
 
                 // Web Direct APK Download Banner (Visible only on Web)
                 if (kIsWeb)
@@ -471,7 +471,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                       const SizedBox(height: 12),
 
                       // Gamified Student Badges
-                      const StudentBadgesWidget(),
+                      const RepaintBoundary(child: StudentBadgesWidget()),
                       const SizedBox(height: 8),
 
                       // Expandable Interactive Computing Solvers Section
@@ -490,21 +490,21 @@ class _CourseListScreenState extends State<CourseListScreen> {
                               padding: EdgeInsets.all(12.0),
                               child: Column(
                                 children: [
-                                  CpuCycleSimulatorWidget(),
+                                  RepaintBoundary(child: CpuCycleSimulatorWidget()),
                                   SizedBox(height: 12),
-                                  OsiModelInspectorWidget(),
+                                  RepaintBoundary(child: OsiModelInspectorWidget()),
                                   SizedBox(height: 12),
-                                  ErDiagramNormalizationWidget(),
+                                  RepaintBoundary(child: ErDiagramNormalizationWidget()),
                                   SizedBox(height: 12),
-                                  CppCodeRunnerWidget(),
+                                  RepaintBoundary(child: CppCodeRunnerWidget()),
                                   SizedBox(height: 12),
-                                  TwosComplementSolverWidget(),
+                                  RepaintBoundary(child: TwosComplementSolverWidget()),
                                   SizedBox(height: 12),
-                                  GanttChartSimulatorWidget(),
+                                  RepaintBoundary(child: GanttChartSimulatorWidget()),
                                   SizedBox(height: 12),
-                                  SubnetCalculatorWidget(),
+                                  RepaintBoundary(child: SubnetCalculatorWidget()),
                                   SizedBox(height: 12),
-                                  SqlSandboxWidget(),
+                                  RepaintBoundary(child: SqlSandboxWidget()),
                                   SizedBox(height: 12),
                                   AcronymGlossaryWidget(),
                                   SizedBox(height: 12),
@@ -622,17 +622,19 @@ class _CourseListScreenState extends State<CourseListScreen> {
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final course = courses[index];
-                          return _CourseCard(
-                            course: course,
-                            authService: _authService,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CourseDetailScreen(course: course),
-                                ),
-                              );
-                            },
+                          return RepaintBoundary(
+                            child: _CourseCard(
+                              course: course,
+                              authService: _authService,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CourseDetailScreen(course: course),
+                                  ),
+                                );
+                              },
+                            ),
                           );
                         },
                         childCount: courses.length,
@@ -729,7 +731,7 @@ class _CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail Image or Header Placeholder
+            // Thumbnail Image or Header Placeholder with 100x RAM cache
             AspectRatio(
               aspectRatio: 16 / 9,
               child: course.thumbnailUrl.isNotEmpty

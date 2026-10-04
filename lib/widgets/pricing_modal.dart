@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../constants/app_constants.dart';
 import '../models/payment_request_model.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
@@ -47,24 +47,17 @@ class _PricingModalState extends State<PricingModal> {
 
   Future<void> _launchWhatsAppActivation() async {
     final user = _authService.currentUser;
-    final uid = user?.uid.substring(0, 8) ?? 'GUEST';
-    final planName = _selectedPlan == 'semesterPass' ? 'Rs. 999 Single Subject Semester Pass' : 'Rs. 499 Emergency Practical Pass';
+    final name = user?.displayName ?? _senderNameController.text.trim();
     final tid = _trxIdController.text.trim();
+    final planName = _selectedPlan == 'semesterPass' ? 'Annual Session Pass (Rs. 999)' : 'Emergency Practical Pass (Rs. 499)';
 
-    final message = Uri.encodeComponent(
-      'Assalam-o-Alaikum PCSA Admin!\n\nI want 5-Min Instant Activation for my Pro Pass:\n• Student UID: $uid\n• Selected Plan: $planName\n• Payment Gateway: $_selectedGateway\n• TRX ID: ${tid.isNotEmpty ? tid : "[Pending Submission]"}',
+    await AppConstants.openPaymentVerificationChat(
+      studentName: name.isNotEmpty ? name : 'Registered Student',
+      board: 'FBISE / STBB',
+      className: 'Class 11/12',
+      tid: tid.isNotEmpty ? tid : '[Pending Submission]',
+      plan: planName,
     );
-
-    final url = 'https://wa.me/923123656361?text=$message';
-    final Uri uri = Uri.parse(url);
-
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open WhatsApp.')),
-        );
-      }
-    }
   }
 
   Future<void> _submitPayment() async {
@@ -82,12 +75,12 @@ class _PricingModalState extends State<PricingModal> {
 
     try {
       final double price = _selectedPlan == 'semesterPass' ? 999.0 : 499.0;
-      final planTitle = _selectedPlan == 'semesterPass' ? 'Semester Pro Pass (Rs 999)' : 'Practical & Viva Pass (Rs 499)';
+      final planTitle = _selectedPlan == 'semesterPass' ? 'Annual Session Pass (Rs 999)' : 'Practical & Viva Pass (Rs 499)';
 
       final req = PaymentRequest(
         id: '',
         studentUid: user.uid,
-        studentEmail: user.email ?? 'guest@academicportal.pk',
+        studentEmail: user.email ?? AppConstants.officialEmail,
         studentName: user.displayName ?? _senderNameController.text.trim(),
         courseId: _selectedPlan,
         courseTitle: planTitle,
@@ -155,13 +148,22 @@ class _PricingModalState extends State<PricingModal> {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.amber,
-                            shape: BoxShape.circle,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            AppConstants.appLogo,
+                            height: 32,
+                            width: 32,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.amber,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.star, color: Color(0xFF004D26), size: 24),
+                            ),
                           ),
-                          child: const Icon(Icons.star, color: Color(0xFF004D26), size: 24),
                         ),
                         const SizedBox(width: 10),
                         const Column(
@@ -187,7 +189,7 @@ class _PricingModalState extends State<PricingModal> {
                     Expanded(
                       child: _buildPricingCard(
                         id: 'semesterPass',
-                        title: 'Semester Pro Pass',
+                        title: 'Annual Session Pass',
                         price: 'Rs. 999',
                         subtitle: 'Full Class XI/XII Access until 2026 Board Exams',
                         isBestValue: true,

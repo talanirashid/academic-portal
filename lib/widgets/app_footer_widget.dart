@@ -1,22 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../constants/app_constants.dart';
 
 /// Professional Academic Footer Component for PCSA Web Portal.
 class AppFooterWidget extends StatelessWidget {
   const AppFooterWidget({super.key});
-
-  static const String _whatsappUrl = 'https://whatsapp.com/channel/0029Va9PCSA';
-  static const String _youtubeUrl = 'https://youtube.com/@PCSA_Official';
-  static const String _facebookUrl = 'https://facebook.com/PCSA.Official';
-  static const String _instagramUrl = 'https://instagram.com/PCSA_Official';
-  static const String _tiktokUrl = 'https://tiktok.com/@PCSA_Official';
-
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      // Silent catch
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +18,7 @@ class AppFooterWidget extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Column 1: Brand & Tagline
+                // Column 1: Brand & Institutional Contact
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -39,24 +26,33 @@ class AppFooterWidget extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.amber,
-                              shape: BoxShape.circle,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              AppConstants.appLogo,
+                              height: 36,
+                              width: 36,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.amber,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.shield, color: Color(0xFF004D26), size: 24),
+                              ),
                             ),
-                            child: const Icon(Icons.shield, color: Color(0xFF004D26), size: 24),
                           ),
                           const SizedBox(width: 10),
                           const Text(
-                            'PCSA Portal',
+                            AppConstants.appShortTitle,
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Pakistan Computer Science Academy',
+                        AppConstants.appTitle,
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.amber),
                       ),
                       const SizedBox(height: 4),
@@ -64,10 +60,35 @@ class AppFooterWidget extends StatelessWidget {
                         '“Bridging Foundational Concepts with Modern Computing Excellence.”',
                         style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.white70),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Conceptual, Rigorous & High-Yield Learning Materials for Federal Board (FBISE - NBF Edition) and Sindh Textbook Board (STBB Unified Curriculum).',
-                        style: TextStyle(fontSize: 12, color: Colors.white60, height: 1.4),
+                      const SizedBox(height: 12),
+
+                      // Verified Contact Handlers
+                      InkWell(
+                        onTap: () => AppConstants.sendSupportEmail(),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.email, color: Colors.amber, size: 16),
+                            SizedBox(width: 6),
+                            Text(
+                              AppConstants.officialEmail,
+                              style: TextStyle(color: Colors.white70, fontSize: 12, decoration: TextDecoration.underline),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        onTap: () => AppConstants.openWhatsAppChat(),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.chat, color: Color(0xFF25D366), size: 16),
+                            SizedBox(width: 6),
+                            Text(
+                              '+92 333 6366291 (Helpline)',
+                              style: TextStyle(color: Color(0xFF25D366), fontWeight: FontWeight.bold, fontSize: 12, decoration: TextDecoration.underline),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -91,16 +112,16 @@ class AppFooterWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 24),
 
-                // Column 3: Social Media Community Grid
+                // Column 3: Unified Social Media Grid (@PCSAcademypk)
                 Expanded(
                   flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Academic Community & Socials', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
+                      const Text('Official Community @PCSAcademypk', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
                       const SizedBox(height: 8),
                       const Text(
-                        'Join our official social channels for daily board MCQs, syllabus updates, and live exam guidance:',
+                        'Join our official channels for daily board MCQs, syllabus updates, and live exam guidance:',
                         style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.3),
                       ),
                       const SizedBox(height: 12),
@@ -108,11 +129,11 @@ class AppFooterWidget extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _socialIconButton('WhatsApp', Icons.chat, const Color(0xFF25D366), _whatsappUrl),
-                          _socialIconButton('YouTube', Icons.play_circle_fill, Colors.redAccent, _youtubeUrl),
-                          _socialIconButton('Facebook', Icons.facebook, Colors.blue, _facebookUrl),
-                          _socialIconButton('Instagram', Icons.camera_alt, Colors.pinkAccent, _instagramUrl),
-                          _socialIconButton('TikTok', Icons.music_note, Colors.cyanAccent, _tiktokUrl),
+                          _socialIconButton('WhatsApp', Icons.chat, const Color(0xFF25D366), AppConstants.whatsappChannel),
+                          _socialIconButton('YouTube', Icons.play_circle_fill, Colors.redAccent, AppConstants.youtube),
+                          _socialIconButton('Facebook', Icons.facebook, Colors.blue, AppConstants.facebook),
+                          _socialIconButton('Instagram', Icons.camera_alt, Colors.pinkAccent, AppConstants.instagram),
+                          _socialIconButton('TikTok', Icons.music_note, Colors.cyanAccent, AppConstants.tiktok),
                         ],
                       ),
                     ],
@@ -147,7 +168,7 @@ class AppFooterWidget extends StatelessWidget {
 
   Widget _socialIconButton(String label, IconData icon, Color color, String url) {
     return InkWell(
-      onTap: () => _launchUrl(url),
+      onTap: () => AppConstants.launchLink(url),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(

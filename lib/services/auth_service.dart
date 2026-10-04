@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
@@ -54,6 +55,82 @@ class AuthService {
       await userRef.update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
+    }
+  }
+
+  /// Robust Google Web authentication handler with safe rootNavigator dialog dismissal & profile sync
+  static Future<void> signInWithGoogleWeb(BuildContext context) async {
+    try {
+      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      User? user = userCredential.user;
+
+      if (user != null) {
+        final userDocRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final docSnap = await userDocRef.get();
+
+        if (!docSnap.exists) {
+          await userDocRef.set({
+            'uid': user.uid,
+            'email': user.email ?? '',
+            'displayName': user.displayName ?? (user.email?.split('@').first ?? 'Student'),
+            'photoUrl': user.photoURL ?? '',
+            'role': 'student',
+            'registeredBoard': 'FBISE',
+            'currentClass': '11th',
+            'tier': 'free',
+            'subscriptions': [],
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } else {
+          await userDocRef.update({
+            'lastLogin': FieldValue.serverTimestamp(),
+          });
+        }
+
+        // Safe dialog dismissal using rootNavigator
+        if (context.mounted) {
+          final navigator = Navigator.of(context, rootNavigator: true);
+          if (navigator.canPop()) {
+            navigator.pop();
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuth Error: ${e.code} - ${e.message}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.code == 'popup-closed-by-user'
+                ? 'Sign-in cancelled by user.'
+                : 'Authentication failed: ${e.message}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Unexpected Sign-in Error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
+
+  /// Sign out current student session and safely navigate home.
+  static Future<void> signOutWeb(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    } catch (e) {
+      debugPrint('Sign-out error: $e');
     }
   }
 

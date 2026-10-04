@@ -99,16 +99,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
     try {
-      await _authService.signInWithGoogle();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed in with Google successfully!'),
-            backgroundColor: Color(0xFF006633),
-          ),
-        );
-        Navigator.pop(context);
-      }
+      await AuthService.signInWithGoogleWeb(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

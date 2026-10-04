@@ -2,46 +2,98 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public read access for course catalogs
+    // --- HELPER FUNCTIONS ---
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- 1. COURSE CATALOG & MODULES (PUBLIC READ, ADMIN WRITE) ---
     match /courses/{courseId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
 
       match /modules/{moduleId} {
         allow read: if true;
-        allow write: if request.auth != null;
+        allow write: if isAdmin();
       }
     }
 
-    // Public read access for global board exam session configs
+    // Direct flat curriculum modules (used by curriculum_service)
+    match /curriculum_modules/{moduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- 2. ACADEMIC SESSIONS & EXAM CUTOFF CONFIGS ---
     match /system_configs/{configId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
 
       match /sessions/{sessionId} {
         allow read: if true;
-        allow write: if request.auth != null;
+        allow write: if isAdmin();
       }
     }
 
-    // Public read access for solved past papers
+    // --- 3. PAST PAPERS & STUDY MATERIAL ARCHIVES ---
     match /past_papers/{paperId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    // Student payment verification requests
+    // --- 4. PROMO CODES ---
+    match /promo_codes/{code} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // --- 5. PAYMENT REQUESTS (STUDENT SUBMISSION, ADMIN APPROVAL) ---
     match /payment_requests/{requestId} {
-      allow read, create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      // Students can create their pending payment verification record
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      
+      // Students can read their own submissions; admins can review and update all
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
     }
 
-    // Student user profiles and progress tracking
+    // --- 6. USER PROFILES & SUB-COLLECTIONS ---
     match /users/{userId} {
-      allow read, write: if request.auth != null;
+      // Profile can be read by the owner or an admin
+      allow read: if isOwner(userId) || isAdmin();
 
+      // Creation allowed during initial sign-up
+      allow create: if isOwner(userId);
+
+      // Updates: Admins have full access.
+      // Normal students can update personal info (phone, displayName, activeDeviceId)
+      // but CANNOT modify protected billing/security keys.
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role',
+          'subscriptions',
+          'tier',
+          'referralCredits'
+        ])
+      );
+
+      // Deletion restricted to admins
+      allow delete: if isAdmin();
+
+      // Student progress & checklist tracking
       match /progress/{courseId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
   }

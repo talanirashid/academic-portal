@@ -2,10 +2,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/course_model.dart';
+import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/acronym_glossary_widget.dart';
+import '../widgets/app_footer_widget.dart';
 import '../widgets/cpp_code_runner_widget.dart';
 import '../widgets/cpu_cycle_simulator_widget.dart';
 import '../widgets/er_diagram_normalization_widget.dart';
@@ -645,6 +646,11 @@ class _CourseListScreenState extends State<CourseListScreen> {
               );
             },
           ),
+
+          // App Footer Section
+          const SliverToBoxAdapter(
+            child: AppFooterWidget(),
+          ),
         ],
       ),
     );
@@ -731,7 +737,7 @@ class _CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail Image or Header Placeholder with 100x RAM cache
+            // Thumbnail Image or Header Placeholder
             AspectRatio(
               aspectRatio: 16 / 9,
               child: course.thumbnailUrl.isNotEmpty

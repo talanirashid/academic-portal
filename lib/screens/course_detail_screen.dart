@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import '../models/course_model.dart';
+import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
 import '../widgets/bilingual_tooltip_widget.dart';

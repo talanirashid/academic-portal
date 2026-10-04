@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 
 /// Full-page Student Authentication Screen for URL routing (/login and /register).
@@ -21,11 +22,24 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
-  String _selectedBoard = 'FBISE';
-  String _selectedGrade = 'Class 11 / HSSC-I';
+  final _phoneController = TextEditingController();
+  final _otherBoardController = TextEditingController();
 
-  final List<String> _boards = ['FBISE', 'Sindh Board', 'Karachi Board', 'Other Board'];
-  final List<String> _grades = ['Class 11 / HSSC-I', 'Class 12 / HSSC-II', 'Matric (9th/10th)'];
+  String _selectedBoard = 'Federal Board (FBISE - Islamabad)';
+  String _selectedClass = 'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)';
+
+  final List<String> _boards = [
+    'Federal Board (FBISE - Islamabad)',
+    'Sindh Board (STBB - All Sindh BISEs)',
+    'Other Boards (Punjab / KPK / Balochistan / AJK)',
+  ];
+
+  final List<String> _classes = [
+    'Class 9th (SSC Part-I)',
+    'Class 10th (SSC Part-II)',
+    'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)',
+    'Class 12th (HSSC Part-II / ICS / Pre-Eng / Pre-Med)',
+  ];
 
   @override
   void initState() {
@@ -38,6 +52,8 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _phoneController.dispose();
+    _otherBoardController.dispose();
     super.dispose();
   }
 
@@ -104,6 +120,33 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     }
   }
 
+  Future<void> _sendPasswordReset() async {
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email address first.')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text.trim());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password reset email sent to ${_emailController.text.trim()}!'),
+            backgroundColor: const Color(0xFF006633),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Reset error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +159,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
+            constraints: const BoxConstraints(maxWidth: 500),
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -166,42 +209,68 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                             prefixIcon: Icon(Icons.person, color: Color(0xFF006633)),
                             border: OutlineInputBorder(),
                           ),
-                          validator: (v) => v == null || v.isEmpty ? 'Please enter your name' : null,
+                          validator: (v) => v == null || v.trim().length < 3 ? 'Enter valid name (3+ chars)' : null,
                         ),
                         const SizedBox(height: 14),
 
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _selectedBoard,
-                                decoration: const InputDecoration(
-                                  labelText: 'Board',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                                ),
-                                items: _boards.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                                onChanged: (val) {
-                                  if (val != null) setState(() => _selectedBoard = val);
-                                },
+                        TextFormField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'WhatsApp Mobile Number (e.g. 03001234567)',
+                            prefixIcon: Icon(Icons.phone, color: Color(0xFF006633)),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) => v == null || v.trim().length < 11 ? 'Enter valid 11-digit mobile number' : null,
+                        ),
+                        const SizedBox(height: 14),
+
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedBoard,
+                          decoration: const InputDecoration(
+                            labelText: 'Educational Board',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _boards.map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedBoard = val);
+                          },
+                        ),
+                        const SizedBox(height: 4),
+
+                        if (_selectedBoard.contains('Sindh Board'))
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
+                            child: const Text(
+                              'ℹ️ Covers Karachi, Hyderabad, Sukkur, Larkana, Mirpurkhas, and SBA under the standardized provincial STBB curriculum.',
+                              style: TextStyle(fontSize: 11, color: Colors.blue),
+                            ),
+                          ),
+
+                        if (_selectedBoard.contains('Other Boards'))
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: TextFormField(
+                              controller: _otherBoardController,
+                              decoration: const InputDecoration(
+                                labelText: 'Specify Board Name (e.g. BISE Lahore, BISE Peshawar)',
+                                border: OutlineInputBorder(),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _selectedGrade,
-                                decoration: const InputDecoration(
-                                  labelText: 'Class Grade',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                                ),
-                                items: _grades.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-                                onChanged: (val) {
-                                  if (val != null) setState(() => _selectedGrade = val);
-                                },
-                              ),
-                            ),
-                          ],
+                          ),
+
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedClass,
+                          decoration: const InputDecoration(
+                            labelText: 'Class / Academic Stream',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _classes.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedClass = val);
+                          },
                         ),
                         const SizedBox(height: 14),
                       ],
@@ -228,6 +297,16 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                         ),
                         validator: (v) => v == null || v.length < 6 ? 'Password must be 6+ characters' : null,
                       ),
+
+                      if (!_isSignUp)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _sendPasswordReset,
+                            child: const Text('Forgot Password?', style: TextStyle(color: Color(0xFF006633), fontSize: 12)),
+                          ),
+                        ),
+
                       const SizedBox(height: 20),
 
                       SizedBox(
@@ -241,15 +320,11 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                           ),
                           onPressed: _isLoading ? null : _submitAuth,
                           child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                )
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                               : Text(_isSignUp ? 'Register Account' : 'Sign In', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
 
                       const Row(
                         children: [
@@ -258,7 +333,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                           Expanded(child: Divider()),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
 
                       SizedBox(
                         width: double.infinity,
@@ -280,13 +355,8 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                         children: [
                           Text(_isSignUp ? 'Already registered?' : 'New student?'),
                           TextButton(
-                            onPressed: () {
-                              setState(() => _isSignUp = !_isSignUp);
-                            },
-                            child: Text(
-                              _isSignUp ? 'Sign In Here' : 'Register Free Account',
-                              style: const TextStyle(color: Color(0xFF006633), fontWeight: FontWeight.bold),
-                            ),
+                            onPressed: () => setState(() => _isSignUp = !_isSignUp),
+                            child: Text(_isSignUp ? 'Sign In Here' : 'Register Free Account', style: const TextStyle(color: Color(0xFF006633), fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),

@@ -77,6 +77,7 @@ class UserModel {
   final String uid;
   final String email;
   final String displayName;
+  final String phone;
   final UserRole role; // 'admin' | 'student' | 'guest'
   final String currentClass; // Tracks highest active or target class (e.g. '11th')
   final String registeredBoard; // 'FBISE' | 'STBB'
@@ -94,6 +95,7 @@ class UserModel {
     required this.uid,
     required this.email,
     required this.displayName,
+    this.phone = '',
     this.role = UserRole.student,
     this.currentClass = '11th',
     this.registeredBoard = 'FBISE',
@@ -174,6 +176,7 @@ class UserModel {
       uid: id,
       email: map['email'] as String? ?? 'guest@academicportal.pk',
       displayName: map['displayName'] as String? ?? (map['isAnonymous'] == true ? 'Guest Student' : 'Student'),
+      phone: map['phone'] as String? ?? '',
       role: roleEnum,
       currentClass: map['currentClass'] as String? ?? map['activeClass'] as String? ?? map['grade'] as String? ?? '11th',
       registeredBoard: map['registeredBoard'] as String? ?? map['activeBoard'] as String? ?? map['board'] as String? ?? 'FBISE',
@@ -194,6 +197,7 @@ class UserModel {
       'uid': uid,
       'email': email,
       'displayName': displayName,
+      'phone': phone,
       'role': role.name,
       'currentClass': currentClass,
       'registeredBoard': registeredBoard,

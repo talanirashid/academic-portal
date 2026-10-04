@@ -10,10 +10,10 @@ Map<String, dynamic> _asMap(dynamic item) {
 /// User Roles for Role-Based Access Control (RBAC).
 enum UserRole { admin, student, guest }
 
-/// Freemium Membership Tiers.
-enum MembershipTier { free, semesterPass, practicalPass }
+/// Freemium Membership Tiers (Rebranded to Annual Session Pass).
+enum MembershipTier { free, annualSessionPass, practicalPass }
 
-/// Model representing a PCSA student or admin user with Role-Based Access Control (RBAC) and Freemium Tiers.
+/// Model representing a PCSA student or admin user with Role-Based Access Control (RBAC), Session-Bound Access, and Referrals.
 class UserModel {
   final String uid;
   final String email;
@@ -24,6 +24,10 @@ class UserModel {
   final String activeBoard; // 'FBISE' or 'STBB'
   final String activeClass; // '9th', '10th', '11th', '12th'
   final bool isAnonymous;
+  final String? activeDeviceId;
+  final String referralCode;
+  final String? referredBy;
+  final int successfulReferralsCount;
   final List<String> unlockedModules;
 
   UserModel({
@@ -36,6 +40,10 @@ class UserModel {
     this.activeBoard = 'FBISE',
     this.activeClass = '11th',
     this.isAnonymous = false,
+    this.activeDeviceId,
+    required this.referralCode,
+    this.referredBy,
+    this.successfulReferralsCount = 0,
     this.unlockedModules = const [],
   });
 
@@ -43,7 +51,7 @@ class UserModel {
 
   bool get isPro =>
       role == UserRole.admin ||
-      tier == MembershipTier.semesterPass ||
+      tier == MembershipTier.annualSessionPass ||
       (subscriptionExpiry != null && subscriptionExpiry!.isAfter(DateTime.now()));
 
   bool get isPracticalUnlocked => isPro || tier == MembershipTier.practicalPass;
@@ -62,8 +70,8 @@ class UserModel {
 
     MembershipTier tierEnum = MembershipTier.free;
     final tierStr = map['tier'] as String? ?? 'free';
-    if (tierStr == 'semesterPass') {
-      tierEnum = MembershipTier.semesterPass;
+    if (tierStr == 'annualSessionPass' || tierStr == 'semesterPass') {
+      tierEnum = MembershipTier.annualSessionPass;
     } else if (tierStr == 'practicalPass') {
       tierEnum = MembershipTier.practicalPass;
     }
@@ -84,6 +92,10 @@ class UserModel {
       activeBoard: map['activeBoard'] as String? ?? map['board'] as String? ?? 'FBISE',
       activeClass: map['activeClass'] as String? ?? map['grade'] as String? ?? '11th',
       isAnonymous: map['isAnonymous'] as bool? ?? false,
+      activeDeviceId: map['activeDeviceId'] as String?,
+      referralCode: map['referralCode'] as String? ?? 'PCSA_${id.substring(0, 6).toUpperCase()}',
+      referredBy: map['referredBy'] as String?,
+      successfulReferralsCount: (map['successfulReferralsCount'] as num?)?.toInt() ?? 0,
       unlockedModules: unlocked.map((e) => e.toString()).toList(),
     );
   }
@@ -99,6 +111,10 @@ class UserModel {
       'activeBoard': activeBoard,
       'activeClass': activeClass,
       'isAnonymous': isAnonymous,
+      'activeDeviceId': activeDeviceId,
+      'referralCode': referralCode,
+      'referredBy': referredBy,
+      'successfulReferralsCount': successfulReferralsCount,
       'unlockedModules': unlockedModules,
       'lastLogin': FieldValue.serverTimestamp(),
     };

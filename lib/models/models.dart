@@ -7,4 +7,5 @@ export 'module_model.dart';
 export 'past_paper_model.dart';
 export 'payment_request_model.dart';
 export 'quiz_question_model.dart';
+export 'session_config_model.dart';
 export 'user_model.dart';

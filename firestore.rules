@@ -13,15 +13,32 @@ service cloud.firestore {
       }
     }
 
+    // Public read access for global board exam session configs
+    match /system_configs/{configId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+
+      match /sessions/{sessionId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
+    }
+
     // Public read access for solved past papers
     match /past_papers/{paperId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
+    // Student payment verification requests
+    match /payment_requests/{requestId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+
     // Student user profiles and progress tracking
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null;
 
       match /progress/{courseId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;

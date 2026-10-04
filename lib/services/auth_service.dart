@@ -25,6 +25,7 @@ class AuthService {
           displayName: user.displayName ?? (user.isAnonymous ? 'Guest Student' : 'Student'),
           role: user.isAnonymous ? UserRole.guest : UserRole.student,
           isAnonymous: user.isAnonymous,
+          referralCode: 'PCSA_${user.uid.substring(0, 6).toUpperCase()}',
         );
       }
       return UserModel.fromMap(doc.data()!, user.uid);

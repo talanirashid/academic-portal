@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_model.dart';
 
 /// Service managing student authentication, profile syncing, and learning progress tracking in Cloud Firestore.
 class AuthService {
@@ -11,6 +12,24 @@ class AuthService {
 
   /// Get currently signed-in user.
   User? get currentUser => _auth.currentUser;
+
+  /// Stream of UserModel for reactive RBAC and tier checking.
+  Stream<UserModel?> getUserModelStream() {
+    return _auth.authStateChanges().asyncMap((user) async {
+      if (user == null) return null;
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) {
+        return UserModel(
+          uid: user.uid,
+          email: user.email ?? 'guest@academicportal.pk',
+          displayName: user.displayName ?? (user.isAnonymous ? 'Guest Student' : 'Student'),
+          role: user.isAnonymous ? UserRole.guest : UserRole.student,
+          isAnonymous: user.isAnonymous,
+        );
+      }
+      return UserModel.fromMap(doc.data()!, user.uid);
+    });
+  }
 
   /// Ensures a Firestore user document exists at `/users/{uid}`.
   Future<void> ensureUserRecordExists(User user, {String? name}) async {
@@ -24,15 +43,41 @@ class AuthService {
         'displayName': name ??
             user.displayName ??
             (user.isAnonymous ? 'Guest Student' : 'Registered Student'),
+        'role': user.isAnonymous ? 'guest' : 'student',
+        'tier': 'free',
         'isAnonymous': user.isAnonymous,
         'createdAt': FieldValue.serverTimestamp(),
         'lastLogin': FieldValue.serverTimestamp(),
-        'role': 'student',
       });
     } else {
       await userRef.update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
+    }
+  }
+
+  /// Links guest credentials to a permanent email/password account without resetting active session progress.
+  Future<UserCredential?> convertGuestToPermanentAccount(
+      String email, String password, String name) async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    final credential = EmailAuthProvider.credential(email: email, password: password);
+    try {
+      final userCred = await user.linkWithCredential(credential);
+      await userCred.user?.updateDisplayName(name);
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': email,
+        'displayName': name,
+        'role': 'student',
+        'isAnonymous': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      return userCred;
+    } catch (e) {
+      rethrow;
     }
   }
 

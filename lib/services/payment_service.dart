@@ -58,7 +58,7 @@ class PaymentService {
     });
   }
 
-  /// Admin Action: Approves payment request, updating status and adding `courseId` to student's `enrolledCourses` array.
+  /// Admin Action: Approves payment request, updating status and granting user tier access.
   Future<void> approvePaymentRequest(PaymentRequest req) async {
     final batch = _firestore.batch();
 
@@ -69,10 +69,14 @@ class PaymentService {
       'processedAt': FieldValue.serverTimestamp(),
     });
 
-    // 2. Grant course enrollment access to student document
+    final String tierType = req.courseId == 'practicalPass' ? 'practicalPass' : 'semesterPass';
+
+    // 2. Grant course enrollment access & tier upgrade to student document
     final userRef = _firestore.collection('users').doc(req.studentUid);
     batch.set(userRef, {
+      'tier': tierType,
       'enrolledCourses': FieldValue.arrayUnion([req.courseId]),
+      'unlockedModules': FieldValue.arrayUnion([req.courseId]),
     }, SetOptions(merge: true));
 
     await batch.commit();

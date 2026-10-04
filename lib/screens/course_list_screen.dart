@@ -5,19 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
-import '../widgets/acronym_glossary_widget.dart';
 import '../widgets/app_footer_widget.dart';
-import '../widgets/cpp_code_runner_widget.dart';
-import '../widgets/cpu_cycle_simulator_widget.dart';
-import '../widgets/er_diagram_normalization_widget.dart';
 import '../widgets/exam_countdown_widget.dart';
-import '../widgets/gantt_chart_simulator_widget.dart';
-import '../widgets/number_system_scratchpad_widget.dart';
-import '../widgets/osi_model_inspector_widget.dart';
-import '../widgets/sql_sandbox_widget.dart';
+import '../widgets/practical_hub_widget.dart';
 import '../widgets/student_badges_widget.dart';
-import '../widgets/subnet_calculator_widget.dart';
-import '../widgets/twos_complement_solver_widget.dart';
 import 'course_detail_screen.dart';
 
 class CourseListScreen extends StatefulWidget {
@@ -31,20 +22,25 @@ class _CourseListScreenState extends State<CourseListScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _searchController = TextEditingController();
 
+  String _selectedBoard = 'Federal Board (FBISE - NBF Edition)';
   String _selectedCategory = 'All';
   String _searchQuery = '';
   bool _isSeeding = false;
 
+  final List<String> _boards = [
+    'Federal Board (FBISE - NBF Edition)',
+    'Sindh Textbook Board (STBB Unified)',
+  ];
+
   final List<String> _categories = [
     'All',
-    'Matric (9th/10th)',
+    'Class 9th (SSC-I)',
+    'Class 10th (SSC-II)',
     'FSc Pre-Medical',
     'FSc Pre-Engineering',
     'ICS / CS',
   ];
 
-  static const String _whatsappCommunityUrl =
-      'https://whatsapp.com/channel/0029Va9PCSA';
   static const String _apkDownloadUrl =
       'https://github.com/talanirashid/academic-portal/releases/download/v1.0.0/PCSA-Academic-Portal-v1.0.0-arm64.apk';
 
@@ -80,130 +76,11 @@ class _CourseListScreenState extends State<CourseListScreen> {
     }
   }
 
-  void _showAccountModal(BuildContext context) {
-    final user = _authService.currentUser;
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.account_circle, size: 36, color: Color(0xFF006633)),
-                  SizedBox(width: 12),
-                  Text(
-                    'Student Account Session',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.person_outline),
-                title: Text(user?.displayName ?? (user?.isAnonymous == true ? 'Guest Student' : 'Student')),
-                subtitle: Text(user?.email ?? 'Session ID: ${user?.uid.substring(0, 8) ?? "Guest"}'),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF25D366),
-                  radius: 18,
-                  child: Icon(Icons.chat, color: Colors.white, size: 20),
-                ),
-                title: const Text(
-                  'Join Official WhatsApp Community',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('Ask syllabus questions, get past papers & updates'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                onTap: () {
-                  Navigator.pop(context);
-                  _launchUrl(_whatsappCommunityUrl);
-                },
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF004D26),
-                  radius: 18,
-                  child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
-                ),
-                title: const Text(
-                  'Admin Content Panel',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('Publish new courses, video links & PDF keybooks'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin');
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.cloud_upload_outlined),
-                      label: const Text('Seed Sample Catalog'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _handleSeedCourses();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (user == null || user.isAnonymous)
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF006633),
-                          foregroundColor: Colors.white,
-                        ),
-                        icon: const Icon(Icons.login),
-                        label: const Text('Register / Login'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, '/login');
-                        },
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[700],
-                          foregroundColor: Colors.white,
-                        ),
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Sign Out'),
-                        onPressed: () async {
-                          await _authService.signOut();
-                          if (context.mounted) Navigator.pop(context);
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                ],
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final user = _authService.currentUser;
+    final isGuest = user == null || user.isAnonymous;
 
     int crossAxisCount = 1;
     if (screenWidth >= 1100) {
@@ -236,66 +113,56 @@ class _CourseListScreenState extends State<CourseListScreen> {
         backgroundColor: const Color(0xFF004D26),
         elevation: 2,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.quiz, color: Colors.white),
-            tooltip: 'FBISE Solved Exercises',
-            onPressed: () => Navigator.pushNamed(context, '/solved-exercises'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.menu_book, color: Colors.white),
-            tooltip: 'Exam Night Cheat Sheet',
-            onPressed: () => Navigator.pushNamed(context, '/cheat-sheet'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.description, color: Colors.white),
-            tooltip: 'Solved Board Past Papers',
-            onPressed: () => Navigator.pushNamed(context, '/past-papers'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.white),
-            tooltip: 'Student Account Session',
-            onPressed: () => _showAccountModal(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.white),
-            tooltip: 'About Academy',
-            onPressed: () {
-              showAboutDialog(
-                context: context,
-                applicationName: 'Pakistan Computer Science Academy',
-                applicationVersion: '1.0.0',
-                applicationIcon: const Icon(Icons.shield, size: 40, color: Color(0xFF004D26)),
-                children: [
-                  const Text(
-                    'Pakistan Computer Science Academy (PCSA) provides free, high-yield video lectures, chapter keybooks, board exam notes, and interactive quizzes for FBISE, Sindh Board, and competitive CS examinations.',
+          // Unified Minimalist Auth Action Button
+          if (isGuest)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber[700],
+                  foregroundColor: const Color(0xFF004D26),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                onPressed: () => Navigator.pushNamed(context, '/login'),
+                icon: const Icon(Icons.login, size: 18),
+                label: const Text('Login / Register'),
+              ),
+            )
+          else
+            PopupMenuButton<String>(
+              icon: const CircleAvatar(
+                backgroundColor: Colors.amber,
+                radius: 16,
+                child: Icon(Icons.person, color: Color(0xFF004D26), size: 20),
+              ),
+              onSelected: (val) async {
+                if (val == 'admin') {
+                  Navigator.pushNamed(context, '/admin');
+                } else if (val == 'logout') {
+                  await _authService.signOut();
+                  setState(() {});
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  enabled: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user.displayName ?? 'Registered Student', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
+                      Text(user.email ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '“Bridging Foundational Concepts with Modern Computing Excellence.”',
-                    style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xFF004D26), fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () => _launchUrl(_whatsappCommunityUrl),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.chat_bubble, size: 18, color: Color(0xFF25D366)),
-                        SizedBox(width: 6),
-                        Text(
-                          'Join Official WhatsApp Community',
-                          style: TextStyle(
-                            color: Color(0xFF006633),
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          )
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(value: 'profile', child: Text('My Profile & Progress')),
+                const PopupMenuItem(value: 'admin', child: Text('Admin Console')),
+                const PopupMenuDivider(),
+                const PopupMenuItem(value: 'logout', child: Text('Sign Out', style: TextStyle(color: Colors.red))),
+              ],
+            ),
         ],
       ),
       body: CustomScrollView(
@@ -339,7 +206,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                     ),
                   ),
 
-                // Top Header Banner with Branding, Taglines & Search Field
+                // Top Header Banner with Board Architecture & Search Field
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -361,17 +228,30 @@ class _CourseListScreenState extends State<CourseListScreen> {
                         '“Bridging Foundational Concepts with Modern Computing Excellence.”',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF006633), fontStyle: FontStyle.italic),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Master Intermediate & Advanced Computing — Conceptual, Rigorous, 100% Free.',
-                        style: TextStyle(fontSize: 13, color: Colors.black87),
+                      const SizedBox(height: 12),
+
+                      // Board Architecture Selector
+                      Row(
+                        children: [
+                          const Text('Board Syllabus: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF004D26))),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _selectedBoard,
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                border: OutlineInputBorder(),
+                              ),
+                              items: _boards.map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedBoard = val);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'علم • تحقیق • کمپیوٹنگ | Excellence in Computer Science Education',
-                        style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
 
                       // Search Bar Input
                       TextField(
@@ -414,7 +294,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Category Filter Chips & Quick Tools
+                      // Separated Class Streams Chips & Quick Tools
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -473,52 +353,14 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
                       // Gamified Student Badges
                       const RepaintBoundary(child: StudentBadgesWidget()),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
 
-                      // Expandable Interactive Computing Solvers Section
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: const ExpansionTile(
-                          leading: Icon(Icons.build_circle, color: Color(0xFF006633)),
-                          title: Text(
-                            'FBISE & Board Interactive Computing Solvers & Tools',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF004D26)),
-                          ),
-                          subtitle: Text('CPU Registers, OSI 7-Layer, ER Normalization, C++, 2\'s Comp, OS Gantt & SQL'),
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Column(
-                                children: [
-                                  RepaintBoundary(child: CpuCycleSimulatorWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: OsiModelInspectorWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: ErDiagramNormalizationWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: CppCodeRunnerWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: TwosComplementSolverWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: GanttChartSimulatorWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: SubnetCalculatorWidget()),
-                                  SizedBox(height: 12),
-                                  RepaintBoundary(child: SqlSandboxWidget()),
-                                  SizedBox(height: 12),
-                                  AcronymGlossaryWidget(),
-                                  SizedBox(height: 12),
-                                  NumberSystemScratchpadWidget(),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Categorized Modular Computing Practical Hub
+                      const RepaintBoundary(child: PracticalHubWidget()),
                       const SizedBox(height: 16),
+
                       const Text(
-                        'Course Catalog & FBISE Curriculum Chapters',
+                        'Course Catalog & Curriculum Chapters',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
                       ),
                     ],

@@ -5,8 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 class AppFooterWidget extends StatelessWidget {
   const AppFooterWidget({super.key});
 
-  static const String _whatsappCommunityUrl =
-      'https://whatsapp.com/channel/0029Va9PCSA';
+  static const String _whatsappUrl = 'https://whatsapp.com/channel/0029Va9PCSA';
+  static const String _youtubeUrl = 'https://youtube.com/@PCSA_Official';
+  static const String _facebookUrl = 'https://facebook.com/PCSA.Official';
+  static const String _instagramUrl = 'https://instagram.com/PCSA_Official';
+  static const String _tiktokUrl = 'https://tiktok.com/@PCSA_Official';
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
@@ -63,7 +66,7 @@ class AppFooterWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Conceptual, Rigorous & High-Yield Learning Materials for FBISE, Sindh Board, and BIEK Karachi.',
+                        'Conceptual, Rigorous & High-Yield Learning Materials for Federal Board (FBISE - NBF Edition) and Sindh Textbook Board (STBB Unified Curriculum).',
                         style: TextStyle(fontSize: 12, color: Colors.white60, height: 1.4),
                       ),
                     ],
@@ -71,45 +74,46 @@ class AppFooterWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 24),
 
-                // Column 2: Quick Links
+                // Column 2: Public Student Quick Links
                 Expanded(
                   flex: 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Quick Navigation', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
+                      const Text('Student Resources', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
                       const SizedBox(height: 8),
                       _footerLink(context, 'FBISE Solved Exercises', '/solved-exercises'),
                       _footerLink(context, 'Solved Board Past Papers', '/past-papers'),
                       _footerLink(context, 'Exam Night Cheat Sheet', '/cheat-sheet'),
-                      _footerLink(context, 'Manual Payment Verification', '/payment'),
-                      _footerLink(context, 'Admin Upload Console', '/admin'),
+                      _footerLink(context, 'Student Account Register', '/register'),
                     ],
                   ),
                 ),
                 const SizedBox(width: 24),
 
-                // Column 3: Payment Accounts & Community
+                // Column 3: Social Media Community Grid
                 Expanded(
                   flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Official Payment Gateways', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
+                      const Text('Academic Community & Socials', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 14)),
                       const SizedBox(height: 8),
-                      const Text('• EasyPaisa Title: Muhammad Rashid\n  Number: 03123656361', style: TextStyle(fontSize: 12, color: Colors.white70)),
-                      const SizedBox(height: 6),
-                      const Text('• HBL Bank Title: Muhammad Rashid\n  Account: 00717918821503', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                      const Text(
+                        'Join our official social channels for daily board MCQs, syllabus updates, and live exam guidance:',
+                        style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.3),
+                      ),
                       const SizedBox(height: 12),
-                      InkWell(
-                        onTap: () => _launchUrl(_whatsappCommunityUrl),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.chat, color: Color(0xFF25D366), size: 18),
-                            SizedBox(width: 6),
-                            Text('Join WhatsApp Channel', style: TextStyle(color: Color(0xFF25D366), fontWeight: FontWeight.bold, fontSize: 12)),
-                          ],
-                        ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _socialIconButton('WhatsApp', Icons.chat, const Color(0xFF25D366), _whatsappUrl),
+                          _socialIconButton('YouTube', Icons.play_circle_fill, Colors.redAccent, _youtubeUrl),
+                          _socialIconButton('Facebook', Icons.facebook, Colors.blue, _facebookUrl),
+                          _socialIconButton('Instagram', Icons.camera_alt, Colors.pinkAccent, _instagramUrl),
+                          _socialIconButton('TikTok', Icons.music_note, Colors.cyanAccent, _tiktokUrl),
+                        ],
                       ),
                     ],
                   ),
@@ -136,6 +140,28 @@ class AppFooterWidget extends StatelessWidget {
         child: Text(
           '• $label',
           style: const TextStyle(color: Colors.white70, fontSize: 12, decoration: TextDecoration.underline),
+        ),
+      ),
+    );
+  }
+
+  Widget _socialIconButton(String label, IconData icon, Color color, String url) {
+    return InkWell(
+      onTap: () => _launchUrl(url),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+          ],
         ),
       ),
     );

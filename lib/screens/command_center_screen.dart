@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../core/config/drive_vault_config.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
+import '../utils/google_drive_helper.dart';
 import 'admin_exam_session_manager.dart';
 
 /// State-of-the-Art PCSA Command Center (Academic Management Hub).
@@ -30,6 +33,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
   final _courseTitleController = TextEditingController();
   final _instructorController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _drivePdfUrlController = TextEditingController();
   bool _isPublishing = false;
 
   // Module 3 Directory Search
@@ -47,7 +51,19 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     _courseTitleController.dispose();
     _instructorController.dispose();
     _descriptionController.dispose();
+    _drivePdfUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openMasterDriveVault() async {
+    final Uri uri = Uri.parse(DriveVaultConfig.masterFolderUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open PCSA DataCenter Drive Vault.')),
+        );
+      }
+    }
   }
 
   Future<void> _publishCourse() async {
@@ -58,6 +74,9 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     try {
       final board = AcademicBoard.findById(_selectedBoardId);
       final courseId = 'course_${_selectedBoardId}_$_selectedClassId';
+      final pdfUrl = _drivePdfUrlController.text.trim().isNotEmpty
+          ? _drivePdfUrlController.text.trim()
+          : DriveVaultConfig.masterFolderUrl;
 
       final newCourse = ComprehensiveCourse(
         courseId: courseId,
@@ -74,6 +93,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
             chapterNumber: 1,
             chapterTitle: 'Unit 1: Overview of Computer Systems & Architecture',
             description: 'Core hardware, software hierarchy, processing cycles and system buses.',
+            exerciseSolutionPdfUrl: pdfUrl,
             keyLearningOutcomes: ['Understand Von Neumann Architecture', 'Differentiate System Bus vs Expansion Bus'],
             lectures: [
               SubLecture(id: 'lec_1', title: 'Part 1: Theoretical Concepts & Foundation', videoUrl: 'M576WGiDBdQ', durationMinutes: '20m'),
@@ -97,6 +117,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
         );
         _courseTitleController.clear();
         _descriptionController.clear();
+        _drivePdfUrlController.clear();
       }
     } catch (e) {
       if (mounted) {
@@ -298,7 +319,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     );
   }
 
-  // MODULE 2: Cascading Board & Class Publisher
+  // MODULE 2: Cascading Board & Class Publisher with DataCenter Link Integration
   Widget _buildModule2CoursePublisher() {
     final currentBoard = AcademicBoard.findById(_selectedBoardId);
     final permittedClasses = currentBoard.permittedClasses;
@@ -307,6 +328,9 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     if (!permittedClasses.any((c) => c.id == _selectedClassId)) {
       _selectedClassId = permittedClasses.first.id;
     }
+
+    final rawDriveInput = _drivePdfUrlController.text.trim();
+    final isValidDriveFile = GoogleDriveHelper.extractFileId(rawDriveInput) != null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -363,6 +387,61 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
                 maxLines: 3,
                 decoration: const InputDecoration(labelText: 'Course Overview / Description', border: OutlineInputBorder()),
               ),
+              const SizedBox(height: 16),
+
+              // Google Drive Vault URL Field & Validation Badge
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _drivePdfUrlController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        labelText: 'Chapter PDF Keybook Drive URL / ID',
+                        hintText: 'Paste Google Drive link or file ID',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: rawDriveInput.isNotEmpty
+                            ? Icon(
+                                isValidDriveFile ? Icons.check_circle : Icons.error,
+                                color: isValidDriveFile ? Colors.green : Colors.red,
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF006633),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                    ),
+                    onPressed: _openMasterDriveVault,
+                    icon: const Icon(Icons.folder_shared, size: 18),
+                    label: const Text('Open PCSA DataCenter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ],
+              ),
+              if (rawDriveInput.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Chip(
+                      backgroundColor: isValidDriveFile ? Colors.green[100] : Colors.red[100],
+                      label: Text(
+                        isValidDriveFile ? 'Valid Drive File: Ready' : 'Invalid Google Drive Link',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: isValidDriveFile ? Colors.green[800] : Colors.red[800]),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      DriveVaultConfig.getCategoryBreadcrumb(DriveVaultConfig.dirHssc1Fbise),
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
+
               const SizedBox(height: 20),
 
               SizedBox(

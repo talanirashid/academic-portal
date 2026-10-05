@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "academic-portal-pk"
-  }
+  },
+  "targets": {
+    "academic-portal-pk": {
+      "hosting": {
+        "pcsacademy_web": [
+          "pcsacademy"
+        ],
+        "default_web": [
+          "academic-portal-pk"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

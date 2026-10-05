@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppConstants {
+  // Primary Domain & Base Web URLs
+  static const String primaryBaseUrl = 'https://pcsacademy.web.app';
+  static const String fallbackBaseUrl = 'https://academic-portal-pk.web.app';
+
   // Official Brand Asset Paths
   static const String appLogo = 'assets/images/pcsa_logo.png';
   static const String appTitle = 'Pakistan Computer Science Academy';

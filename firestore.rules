@@ -2,22 +2,98 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- HELPER FUNCTIONS ---
+    // --- AUTHENTICATION & ROLE HELPERS ---
     function isAuthenticated() {
       return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // --- 1. COURSE CATALOG & MODULES (PUBLIC READ, ADMIN WRITE) ---
+    // Resolves role either from Custom Claims (Zero read penalty) or fallback document read
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.get('admin', false) == true ||
+        request.auth.token.get('role', '') == 'admin' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin')
+      );
+    }
+
+    // --- USER ACCOUNTS & PASS SUBCOLLECTIONS ---
+    match /users/{userId} {
+      // Profile can be read by owner or admin
+      allow read: if isOwner(userId) || isAdmin();
+      // Allow self-registration without role tampering
+      allow create: if isOwner(userId) &&
+        request.resource.data.get('role', 'student') == 'student';
+
+      // Updates: Prevent students from privilege-escalating to admin
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin', 'permissions'])
+      );
+
+      allow delete: if isAdmin();
+
+      // Active Passes Subcollection (Controls access to specific Board & Grade)
+      match /active_passes/{passId} {
+        allow read: if isOwner(userId) || isAdmin();
+        // Passes can ONLY be minted, renewed, or revoked by Admin/Automation pipelines
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /progress/{courseId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // --- PAYMENT VERIFICATION PIPELINE (JAZZCASH / EASYPAISA / BANK) ---
+    match /payment_verifications/{verificationId} {
+      // Students view only their own records; Admins audit all
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      // Student initial submission guard: Enforce status == 'pending' and clean TID payload
+      allow create: if isAuthenticated() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.tid is string &&
+        request.resource.data.tid.size() >= 6 &&
+        request.resource.data.rejectionReason == null;
+
+      // Only Admins or backend Cloud Functions can transition status to 'approved' or 'rejected'
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- UNCLAIMED SMS / TID DEPOSITS LEDGER ---
+    match /unclaimed_deposits/{depositTid} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- ACADEMIC CURRICULA & COURSE CHAPTERS ---
+    match /curriculums/{stream} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /courses/{courseId} {
+        allow read: if true;
+        allow write: if isAdmin();
+
+        match /chapters/{chapterId} {
+          allow read: if isAuthenticated();
+          allow write: if isAdmin();
+
+          match /lectures/{lectureId} {
+            allow read: if isAuthenticated();
+            allow write: if isAdmin();
+          }
+        }
+      }
+    }
+
+    // Legacy courses collection for backward compatibility
     match /courses/{courseId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -28,13 +104,13 @@ service cloud.firestore {
       }
     }
 
-    // Direct flat curriculum modules (used by curriculum_service)
+    // Direct flat curriculum modules
     match /curriculum_modules/{moduleId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // --- 2. ACADEMIC SESSIONS & EXAM CUTOFF CONFIGS ---
+    // --- SYSTEM CONFIGS & EXAM DEADLINES ---
     match /system_configs/{configId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -45,56 +121,40 @@ service cloud.firestore {
       }
     }
 
-    // --- 3. PAST PAPERS & STUDY MATERIAL ARCHIVES ---
+    // Legacy payment requests
+    match /payment_requests/{requestId} {
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Solved past papers
     match /past_papers/{paperId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // --- 4. PROMO CODES ---
+    // Promo codes
     match /promo_codes/{code} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
-    // --- 5. PAYMENT REQUESTS (STUDENT SUBMISSION, ADMIN APPROVAL) ---
-    match /payment_requests/{requestId} {
-      // Students can create their pending payment verification record
-      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
-      
-      // Students can read their own submissions; admins can review and update all
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow update, delete: if isAdmin();
+    // --- CS PRACTICAL LAB (Journals, Simulators, Solved Programs) ---
+    match /practical_lab/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /experiments/{experimentId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
     }
 
-    // --- 6. USER PROFILES & SUB-COLLECTIONS ---
-    match /users/{userId} {
-      // Profile can be read by the owner or an admin
-      allow read: if isOwner(userId) || isAdmin();
-
-      // Creation allowed during initial sign-up
-      allow create: if isOwner(userId);
-
-      // Updates: Admins have full access.
-      // Normal students can update personal info (phone, displayName, activeDeviceId)
-      // but CANNOT modify protected billing/security keys.
-      allow update: if isAdmin() || (
-        isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-          'role',
-          'subscriptions',
-          'tier',
-          'referralCredits'
-        ])
-      );
-
-      // Deletion restricted to admins
-      allow delete: if isAdmin();
-
-      // Student progress & checklist tracking
-      match /progress/{courseId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
+    // --- SYSTEM METADATA, BOARDS & SLUG REGISTRIES ---
+    match /system_metadata/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

@@ -1,16 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "curriculum_modules",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "board", "order": "ASCENDING" },
-        { "fieldPath": "className", "order": "ASCENDING" },
-        { "fieldPath": "unitNumber", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "payment_requests",
+      "collectionGroup": "payment_verifications",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
@@ -18,7 +9,7 @@
       ]
     },
     {
-      "collectionGroup": "payment_requests",
+      "collectionGroup": "payment_verifications",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "uid", "order": "ASCENDING" },
@@ -26,21 +17,30 @@
       ]
     },
     {
-      "collectionGroup": "system_configs",
+      "collectionGroup": "payment_verifications",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "isSessionActive", "order": "ASCENDING" },
-        { "fieldPath": "board", "order": "ASCENDING" },
-        { "fieldPath": "className", "order": "ASCENDING" }
+        { "fieldPath": "boardId", "order": "ASCENDING" },
+        { "fieldPath": "targetGrade", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "submittedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "past_papers",
+      "collectionGroup": "courses",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "board", "order": "ASCENDING" },
-        { "fieldPath": "className", "order": "ASCENDING" },
-        { "fieldPath": "year", "order": "DESCENDING" }
+        { "fieldPath": "curriculumStream", "order": "ASCENDING" },
+        { "fieldPath": "targetClass", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "chapters",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chapterNumber", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
     }
   ],

@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://pcsacademy.web.app",
+      "https://pcsacademy.firebaseapp.com",
+      "https://academic-portal-pk.web.app",
+      "http://localhost:*"
+    ],
+    "method": ["GET", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

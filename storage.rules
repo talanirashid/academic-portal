@@ -1,9 +1,41 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /payment_receipts/{allPaths=**} {
-      allow write: if request.auth != null;
-      allow read: if request.auth != null;
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.get('admin', false) == true ||
+        request.auth.token.get('role', '') == 'admin'
+      );
+    }
+
+    // Payment Receipts (Screenshots uploaded by students)
+    match /payment_receipts/{userId}/{fileName} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Up to 5MB images only
+      allow write: if isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.size < 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+    }
+
+    // Curricular Books, Solved Practical Copies & Lecture Notes
+    match /curriculum_materials/{stream}/{grade}/{fileName} {
+      // Authenticated students can view/download; only Admins can write
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() &&
+        request.resource.size < 35 * 1024 * 1024 &&
+        request.resource.contentType == 'application/pdf';
+    }
+
+    // Public Static Visuals (Banners, Board Badges, Architecture Icons)
+    match /public_assets/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

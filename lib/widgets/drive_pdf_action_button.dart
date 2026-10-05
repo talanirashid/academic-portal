@@ -1,137 +1,103 @@
 import 'package:flutter/material.dart';
 import '../utils/google_drive_helper.dart';
 
-/// Reusable, responsive PDF action button/card component bound to PCSA_DataCenter external file vault.
+/// Reusable UI PDF action button providing clean responsive styling for chapter lecture notes and lab copies.
 class DrivePdfActionButton extends StatelessWidget {
-  final String? rawDriveUrl;
+  final String? driveFileUrl;
   final String documentTitle;
-  final String? categoryTag;
+  final String? unitTag;
   final bool isCompact;
 
   const DrivePdfActionButton({
     super.key,
-    required this.rawDriveUrl,
+    required this.driveFileUrl,
     required this.documentTitle,
-    this.categoryTag,
+    this.unitTag,
     this.isCompact = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isValid = rawDriveUrl != null && GoogleDriveHelper.extractFileId(rawDriveUrl!) != null;
+    final hasValidFile = GoogleDriveHelper.extractFileId(driveFileUrl) != null;
 
-    if (!isValid) {
+    if (!hasValidFile) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.amber[50],
+          color: const Color(0xFF0F172A).withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.amber[300]!),
+          border: Border.all(color: Colors.white12),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.schedule, color: Color(0xFF004D26), size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    documentTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF004D26)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Resource Upload in Progress in PCSA DataCenter',
-                    style: TextStyle(fontSize: 11, color: Colors.black87),
-                  ),
-                ],
-              ),
+          mainAxisSize: isCompact ? MainAxisSize.min : MainAxisSize.max,
+          children: const [
+            Icon(Icons.hourglass_empty_rounded, size: 18, color: Colors.amberAccent),
+            SizedBox(width: 8),
+            Text(
+              'PDF Notes Upload Pending',
+              style: TextStyle(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.w500),
             ),
           ],
         ),
-      );
-    }
-
-    if (isCompact) {
-      return ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF006633),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () => GoogleDriveHelper.launchDocumentViewer(context, rawDriveUrl!),
-        icon: const Icon(Icons.picture_as_pdf, size: 16),
-        label: Text(documentTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       );
     }
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                borderRadius: BorderRadius.circular(8),
+      elevation: 0,
+      color: const Color(0xFF1E293B),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFF334155)),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => GoogleDriveHelper.launchDocumentViewer(context, driveFileUrl!),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: isCompact ? 10 : 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 22),
               ),
-              child: const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 28),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (categoryTag != null && categoryTag!.isNotEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF006633).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (unitTag != null) ...[
+                      Text(
+                        unitTag!.toUpperCase(),
+                        style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                      child: Text(
-                        categoryTag!,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF006633)),
+                      const SizedBox(height: 2),
+                    ],
+                    Text(
+                      documentTitle,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
                   ],
-                  Text(
-                    documentTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'PCSA DataCenter Vault • Direct Stream & Download',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF006633),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onPressed: () => GoogleDriveHelper.launchDocumentViewer(context, rawDriveUrl!),
-              icon: const Icon(Icons.open_in_new, size: 16),
-              label: const Text('View PDF', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-            ),
-          ],
+              const SizedBox(width: 8),
+              const Icon(Icons.file_download_outlined, color: Color(0xFF94A3B8), size: 20),
+            ],
+          ),
         ),
       ),
     );

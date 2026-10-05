@@ -30,6 +30,8 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
   // Module 2 Publisher Form Fields
   String _selectedBoardId = 'biek_karachi';
   String _selectedClassId = '11th';
+  String _selectedUnitTitle = DriveVaultConfig.fbiseClass11Units.first;
+
   final _courseTitleController = TextEditingController();
   final _instructorController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -66,6 +68,21 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     }
   }
 
+  List<String> _getAvailableUnitsForBoardAndClass() {
+    final board = AcademicBoard.findById(_selectedBoardId);
+    if (board.stream == CurriculumStream.sindh) {
+      if (_selectedClassId == '12th') {
+        return DriveVaultConfig.stbbClass12Units;
+      }
+      return DriveVaultConfig.stbbClass11Units;
+    } else {
+      if (_selectedClassId == '12th') {
+        return DriveVaultConfig.fbiseClass12Units;
+      }
+      return DriveVaultConfig.fbiseClass11Units;
+    }
+  }
+
   Future<void> _publishCourse() async {
     if (_courseTitleController.text.trim().isEmpty) return;
 
@@ -75,7 +92,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
       final board = AcademicBoard.findById(_selectedBoardId);
       final courseId = 'course_${_selectedBoardId}_$_selectedClassId';
       final pdfUrl = _drivePdfUrlController.text.trim().isNotEmpty
-          ? _drivePdfUrlController.text.trim()
+          ? GoogleDriveHelper.obfuscateId(_drivePdfUrlController.text.trim())
           : DriveVaultConfig.masterFolderUrl;
 
       final newCourse = ComprehensiveCourse(
@@ -91,13 +108,13 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
           ChapterItem(
             chapterId: 'chap_1',
             chapterNumber: 1,
-            chapterTitle: 'Unit 1: Overview of Computer Systems & Architecture',
-            description: 'Core hardware, software hierarchy, processing cycles and system buses.',
+            chapterTitle: _selectedUnitTitle,
+            description: 'Core syllabus, software architecture, processing cycles and board questions.',
             exerciseSolutionPdfUrl: pdfUrl,
-            keyLearningOutcomes: ['Understand Von Neumann Architecture', 'Differentiate System Bus vs Expansion Bus'],
+            keyLearningOutcomes: ['Master Textbook Concepts', 'Solve Past Board Examination Questions'],
             lectures: [
               SubLecture(id: 'lec_1', title: 'Part 1: Theoretical Concepts & Foundation', videoUrl: 'M576WGiDBdQ', durationMinutes: '20m'),
-              SubLecture(id: 'lec_2', title: 'Part 2: Bus Architecture & Hardware Tracing', videoUrl: '3QhU9jd03a0', durationMinutes: '18m'),
+              SubLecture(id: 'lec_2', title: 'Part 2: Practical Implementation & Live Tracing', videoUrl: '3QhU9jd03a0', durationMinutes: '18m'),
               SubLecture(id: 'lec_3', title: 'Part 3: Chapter Exercise & Solved SLO MCQs', videoUrl: 'Z5JC9Ve1sfA', durationMinutes: '25m', isExerciseReview: true),
             ],
           ),
@@ -329,6 +346,11 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
       _selectedClassId = permittedClasses.first.id;
     }
 
+    final availableUnits = _getAvailableUnitsForBoardAndClass();
+    if (!availableUnits.contains(_selectedUnitTitle)) {
+      _selectedUnitTitle = availableUnits.first;
+    }
+
     final rawDriveInput = _drivePdfUrlController.text.trim();
     final isValidDriveFile = GoogleDriveHelper.extractFileId(rawDriveInput) != null;
 
@@ -372,6 +394,21 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
               ),
               const SizedBox(height: 12),
 
+              // 3. Official Textbook Unit Selector
+              DropdownButtonFormField<String>(
+                key: ValueKey('${_selectedBoardId}_$_selectedClassId'),
+                initialValue: _selectedUnitTitle,
+                decoration: const InputDecoration(
+                  labelText: 'Official Textbook Unit Title (Verified Syllabus)',
+                  border: OutlineInputBorder(),
+                ),
+                items: availableUnits.map((u) => DropdownMenuItem(value: u, child: Text(u, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => _selectedUnitTitle = val);
+                },
+              ),
+              const SizedBox(height: 12),
+
               TextFormField(
                 controller: _courseTitleController,
                 decoration: const InputDecoration(labelText: 'Course Title', border: OutlineInputBorder()),
@@ -397,7 +434,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
                       controller: _drivePdfUrlController,
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
-                        labelText: 'Chapter PDF Keybook Drive URL / ID',
+                        labelText: 'Chapter PDF Keybook Drive URL / Obfuscated Token',
                         hintText: 'Paste Google Drive link or file ID',
                         border: const OutlineInputBorder(),
                         suffixIcon: rawDriveInput.isNotEmpty
@@ -429,13 +466,13 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
                     Chip(
                       backgroundColor: isValidDriveFile ? Colors.green[100] : Colors.red[100],
                       label: Text(
-                        isValidDriveFile ? 'Valid Drive File: Ready' : 'Invalid Google Drive Link',
+                        isValidDriveFile ? 'Valid Drive File: Ready & Obfuscated' : 'Invalid Google Drive Link',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: isValidDriveFile ? Colors.green[800] : Colors.red[800]),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      DriveVaultConfig.getCategoryBreadcrumb(DriveVaultConfig.dirHssc1Fbise),
+                      'Target Unit: $_selectedUnitTitle',
                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                   ],

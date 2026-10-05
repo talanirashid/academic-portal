@@ -1,61 +1,55 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Robust Google Drive URL parser, file ID extractor, and document viewer launcher.
+/// Cryptographic Google Drive Link Resolver, Normalizer, and Launcher.
 class GoogleDriveHelper {
   GoogleDriveHelper._();
 
-  /// Extracts the Google Drive file ID from standard share links, open links, uc links, or bare ID strings.
-  static String? extractFileId(String input) {
-    final raw = input.trim();
-    if (raw.isEmpty) return null;
+  /// Regex pattern to isolate standard Google Drive File / Folder IDs
+  static final RegExp _driveIdRegex = RegExp(r'[-\w]{25,50}');
 
-    // Pattern 1: /file/d/FILE_ID/
-    if (raw.contains('/file/d/')) {
-      final regExp = RegExp(r'/file/d/([a-zA-Z0-9_-]{25,50})');
-      final match = regExp.firstMatch(raw);
-      if (match != null && match.groupCount >= 1) {
-        return match.group(1);
+  /// Extracts the clean alphanumeric File ID from any share URL, embed URL, or base64 token
+  static String? extractFileId(String? input) {
+    if (input == null || input.trim().isEmpty) return null;
+    final trimmed = input.trim();
+
+    // Check if input is a base64 encoded string
+    if (!trimmed.contains('/') && !trimmed.contains('?') && trimmed.length % 4 == 0) {
+      try {
+        final decoded = utf8.decode(base64.decode(trimmed));
+        final match = _driveIdRegex.firstMatch(decoded);
+        if (match != null) return match.group(0);
+      } catch (_) {
+        // Fall through to plain text parsing if not valid base64
       }
     }
 
-    // Pattern 2: ?id=FILE_ID or &id=FILE_ID
-    if (raw.contains('id=')) {
-      final regExp = RegExp(r'id=([a-zA-Z0-9_-]{25,50})');
-      final match = regExp.firstMatch(raw);
-      if (match != null && match.groupCount >= 1) {
-        return match.group(1);
-      }
-    }
-
-    // Pattern 3: Bare ID string (25 to 50 alphanumeric characters)
-    final bareRegExp = RegExp(r'^[a-zA-Z0-9_-]{25,50}$');
-    if (bareRegExp.hasMatch(raw)) {
-      return raw;
-    }
-
-    return null;
+    final match = _driveIdRegex.firstMatch(trimmed);
+    return match?.group(0);
   }
 
-  /// Returns inline preview URL for web embedding or browser viewing.
-  static String getPreviewUrl(String input) {
-    final fileId = extractFileId(input);
-    if (fileId != null) {
-      return 'https://drive.google.com/file/d/$fileId/preview';
-    }
-    return getDirectStreamUrl(input);
+  /// Encrypts/obfuscates a raw Drive ID to safely store inside Firestore records or share links
+  static String obfuscateId(String rawId) {
+    final cleanId = extractFileId(rawId) ?? rawId;
+    return base64.encode(utf8.encode(cleanId));
   }
 
-  /// Returns direct download URL for one-click browser downloading.
-  static String getDirectDownloadUrl(String input) {
-    final fileId = extractFileId(input);
-    if (fileId != null) {
-      return 'https://drive.usercontent.google.com/download?id=$fileId&export=download&confirm=t';
-    }
-    return input;
+  /// Generates the direct browser preview URL for Flutter Web iframes or in-app viewers
+  static String getPreviewUrl(String fileIdOrUrl) {
+    final fileId = extractFileId(fileIdOrUrl);
+    if (fileId == null) return '';
+    return 'https://drive.google.com/file/d/$fileId/preview';
   }
 
-  /// Converts standard share links to uc export stream links (for SfPdfViewer).
+  /// Generates the direct byte-download link bypassing Google preview chrome
+  static String getDirectDownloadUrl(String fileIdOrUrl) {
+    final fileId = extractFileId(fileIdOrUrl);
+    if (fileId == null) return '';
+    return 'https://drive.usercontent.google.com/download?id=$fileId&export=download&confirm=t';
+  }
+
+  /// Converts standard share links to uc export stream links (for SfPdfViewer)
   static String getDirectStreamUrl(String rawUrl) {
     final fileId = extractFileId(rawUrl);
     if (fileId != null) {
@@ -64,41 +58,29 @@ class GoogleDriveHelper {
     return rawUrl;
   }
 
-  /// Resolves the preview/download link and launches it securely using url_launcher.
-  static Future<void> launchDocumentViewer(BuildContext context, String input) async {
-    final fileId = extractFileId(input);
-
+  /// Resilient launcher handling both web downloads and native mobile intents
+  static Future<void> launchDocumentViewer(BuildContext context, String rawInput) async {
+    final fileId = extractFileId(rawInput);
     if (fileId == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid Google Drive link or document ID.'),
-            backgroundColor: Colors.redAccent,
-          ),
+          const SnackBar(content: Text('Error: Invalid or unresolvable document link.')),
         );
       }
       return;
     }
 
-    final String targetUrl = getPreviewUrl(input);
-    final Uri uri = Uri.parse(targetUrl);
-
+    final previewUri = Uri.parse(getPreviewUrl(fileId));
     try {
-      if (!await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-        webOnlyWindowName: '_blank',
-      )) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open document: $targetUrl')),
-          );
-        }
+      if (await canLaunchUrl(previewUri)) {
+        await launchUrl(previewUri, mode: LaunchMode.externalApplication, webOnlyWindowName: '_blank');
+      } else {
+        throw 'Could not launch URL';
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error launching document: ${e.toString()}')),
+          SnackBar(content: Text('Failed to open document: $e')),
         );
       }
     }

@@ -20,6 +20,10 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
 
   late TabController _tabController;
 
+  // Module 1 Search & Filter
+  String _paymentSearchQuery = '';
+  String _paymentStatusFilter = 'pending'; // 'pending', 'approved', 'rejected'
+
   // Module 2 Publisher Form Fields
   String _selectedBoardId = 'biek_karachi';
   String _selectedClassId = '11th';
@@ -27,6 +31,9 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
   final _instructorController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isPublishing = false;
+
+  // Module 3 Directory Search
+  String _studentSearchQuery = '';
 
   @override
   void initState() {
@@ -174,7 +181,7 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     );
   }
 
-  // MODULE 1
+  // MODULE 1: Fast Approval Pipeline
   Widget _buildModule1PaymentVerification() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -183,17 +190,65 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
         children: [
           const AdminExamSessionManager(),
           const SizedBox(height: 16),
-          const Text('Student Payment Requests Queue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Student Payment Requests Queue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
+              Row(
+                children: [
+                  ChoiceChip(
+                    label: const Text('Pending'),
+                    selected: _paymentStatusFilter == 'pending',
+                    selectedColor: const Color(0xFF006633),
+                    labelStyle: TextStyle(color: _paymentStatusFilter == 'pending' ? Colors.white : Colors.black87),
+                    onSelected: (_) => setState(() => _paymentStatusFilter = 'pending'),
+                  ),
+                  const SizedBox(width: 6),
+                  ChoiceChip(
+                    label: const Text('Approved'),
+                    selected: _paymentStatusFilter == 'approved',
+                    selectedColor: const Color(0xFF006633),
+                    labelStyle: TextStyle(color: _paymentStatusFilter == 'approved' ? Colors.white : Colors.black87),
+                    onSelected: (_) => setState(() => _paymentStatusFilter = 'approved'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Search Field
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search by Student Name, Email or TRX ID...',
+              prefixIcon: Icon(Icons.search, color: Color(0xFF006633)),
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            onChanged: (val) => setState(() => _paymentSearchQuery = val.trim().toLowerCase()),
+          ),
           const SizedBox(height: 12),
-          StreamBuilder<List<PaymentRequest>>(
-            stream: _paymentService.getPendingPaymentRequestsStream(),
+
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _firestore.collection('payment_requests').where('status', isEqualTo: _paymentStatusFilter).snapshots(),
             builder: (context, snapshot) {
-              final list = snapshot.data ?? [];
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator(color: Color(0xFF006633)));
+              }
+
+              var docs = snapshot.data?.docs ?? [];
+              var list = docs.map((d) => PaymentRequest.fromMap(d.data(), d.id)).toList();
+
+              if (_paymentSearchQuery.isNotEmpty) {
+                list = list.where((r) => r.studentName.toLowerCase().contains(_paymentSearchQuery) || r.studentEmail.toLowerCase().contains(_paymentSearchQuery) || r.transactionId.toLowerCase().contains(_paymentSearchQuery)).toList();
+              }
+
               if (list.isEmpty) {
                 return const Card(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: Center(child: Text('No pending TRX verification requests.', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
+                    child: Center(child: Text('No matching payment verification requests.', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
                   ),
                 );
               }
@@ -217,17 +272,19 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
                             backgroundColor: isRenewal ? Colors.amber[100] : const Color(0xFF004D26),
                             label: Text(isRenewal ? 'RENEWAL' : 'NEW', style: TextStyle(color: isRenewal ? const Color(0xFF004D26) : Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006633), foregroundColor: Colors.white),
-                            onPressed: () async {
-                              await _paymentService.approvePaymentRequest(req);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Approved ${req.studentName}!'), backgroundColor: const Color(0xFF006633)));
-                              }
-                            },
-                            child: const Text('Approve Pass'),
-                          ),
+                          if (_paymentStatusFilter == 'pending') ...[
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006633), foregroundColor: Colors.white),
+                              onPressed: () async {
+                                await _paymentService.approvePaymentRequest(req);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Approved ${req.studentName}!'), backgroundColor: const Color(0xFF006633)));
+                                }
+                              },
+                              child: const Text('Approve Pass'),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -241,8 +298,16 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     );
   }
 
-  // MODULE 2
+  // MODULE 2: Cascading Board & Class Publisher
   Widget _buildModule2CoursePublisher() {
+    final currentBoard = AcademicBoard.findById(_selectedBoardId);
+    final permittedClasses = currentBoard.permittedClasses;
+
+    // Auto-adjust selected class if current choice is not in permitted list
+    if (!permittedClasses.any((c) => c.id == _selectedClassId)) {
+      _selectedClassId = permittedClasses.first.id;
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Card(
@@ -255,24 +320,34 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
             children: [
               const Text('Curriculum & Chapter Publisher Form', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
               const SizedBox(height: 16),
+
+              // 1. Board Selector
               DropdownButtonFormField<String>(
                 initialValue: _selectedBoardId,
-                decoration: const InputDecoration(labelText: 'Target Academic Board', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Target Academic Board Authority', border: OutlineInputBorder()),
                 items: AcademicBoard.registry.map((b) => DropdownMenuItem(value: b.id, child: Text('${b.shortCode} - ${b.fullName}'))).toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedBoardId = val);
                 },
               ),
               const SizedBox(height: 12),
+
+              // 2. Cascading Class Selector (Restricted to Board Permitted Classes)
               DropdownButtonFormField<String>(
+                key: ValueKey(_selectedBoardId), // Rebinds when board changes
                 initialValue: _selectedClassId,
-                decoration: const InputDecoration(labelText: 'Target Class Grade', border: OutlineInputBorder()),
-                items: AcademicClass.values.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Target Class Grade (${currentBoard.shortCode} Stream)',
+                  border: const OutlineInputBorder(),
+                  helperText: 'Filtered permitted classes for ${currentBoard.shortCode}',
+                ),
+                items: permittedClasses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))).toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedClassId = val);
                 },
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: _courseTitleController,
                 decoration: const InputDecoration(labelText: 'Course Title', border: OutlineInputBorder()),
@@ -286,9 +361,10 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Course Description / Overview', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Course Overview / Description', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 20),
+
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -306,49 +382,76 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
     );
   }
 
-  // MODULE 3
+  // MODULE 3: Student Directory
   Widget _buildModule3StudentDirectory() {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _firestore.collection('users').snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF006633)));
-        }
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search Directory by Name or Email...',
+              prefixIcon: Icon(Icons.search, color: Color(0xFF006633)),
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            onChanged: (val) => setState(() => _studentSearchQuery = val.trim().toLowerCase()),
+          ),
+          const SizedBox(height: 12),
 
-        final docs = snapshot.data?.docs ?? [];
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _firestore.collection('users').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF006633)));
+                }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final data = docs[index].data();
-            final uid = docs[index].id;
-            final name = data['displayName'] as String? ?? 'Student';
-            final email = data['email'] as String? ?? '';
-            final role = data['role'] as String? ?? 'student';
+                var docs = snapshot.data?.docs ?? [];
+                if (_studentSearchQuery.isNotEmpty) {
+                  docs = docs.where((d) {
+                    final data = d.data();
+                    final name = (data['displayName'] as String? ?? '').toLowerCase();
+                    final email = (data['email'] as String? ?? '').toLowerCase();
+                    return name.contains(_studentSearchQuery) || email.contains(_studentSearchQuery);
+                  }).toList();
+                }
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: role == 'admin' ? Colors.amber[800] : const Color(0xFF006633),
-                  child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'S', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-                title: Text('$name ($role)'),
-                subtitle: Text('$email • UID: ${uid.substring(0, 8)}'),
-                trailing: Chip(
-                  backgroundColor: role == 'admin' ? Colors.amber[100] : Colors.grey[200],
-                  label: Text(role.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: role == 'admin' ? const Color(0xFF004D26) : Colors.black87)),
-                ),
-              ),
-            );
-          },
-        );
-      },
+                return ListView.builder(
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data();
+                    final uid = docs[index].id;
+                    final name = data['displayName'] as String? ?? 'Student';
+                    final email = data['email'] as String? ?? '';
+                    final role = data['role'] as String? ?? 'student';
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: role == 'admin' ? Colors.amber[800] : const Color(0xFF006633),
+                          child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'S', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                        title: Text('$name ($role)'),
+                        subtitle: Text('$email • UID: ${uid.substring(0, 8)}'),
+                        trailing: Chip(
+                          backgroundColor: role == 'admin' ? Colors.amber[100] : Colors.grey[200],
+                          label: Text(role.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: role == 'admin' ? const Color(0xFF004D26) : Colors.black87)),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  // MODULE 4
+  // MODULE 4: Regional Analytics
   Widget _buildModule4RegionalAnalytics() {
     return Padding(
       padding: const EdgeInsets.all(20.0),

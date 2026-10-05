@@ -7,12 +7,8 @@
       "hosting": {
         "pcsacademy_web": [
           "pcsacademy"
-        ],
-        "default_web": [
-          "academic-portal-pk"
         ]
       }
     }
-  },
-  "etags": {}
+  }
 }

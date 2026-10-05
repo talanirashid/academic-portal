@@ -6,9 +6,11 @@ import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/app_footer_widget.dart';
+import '../widgets/brand_logo.dart';
 import '../widgets/exam_countdown_widget.dart';
 import '../widgets/practical_hub_widget.dart';
 import '../widgets/student_badges_widget.dart';
+import '../widgets/user_profile_chip.dart';
 import 'course_detail_screen.dart';
 
 class CourseListScreen extends StatefulWidget {
@@ -79,8 +81,6 @@ class _CourseListScreenState extends State<CourseListScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final user = _authService.currentUser;
-    final isGuest = user == null || user.isAnonymous;
 
     int crossAxisCount = 1;
     if (screenWidth >= 1100) {
@@ -93,76 +93,19 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.amber[700],
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.shield, color: Color(0xFF004D26), size: 20),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              isMobile ? 'PCSA Portal' : 'Pakistan Computer Science Academy',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
-            ),
-          ],
+        title: PCSABrandLogo(
+          height: 36,
+          showText: !isMobile,
+          onTap: () {},
         ),
         backgroundColor: const Color(0xFF004D26),
         elevation: 2,
-        actions: [
-          // Unified Minimalist Auth Action Button
-          if (isGuest)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber[700],
-                  foregroundColor: const Color(0xFF004D26),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                onPressed: () => Navigator.pushNamed(context, '/login'),
-                icon: const Icon(Icons.login, size: 18),
-                label: const Text('Login / Register'),
-              ),
-            )
-          else
-            PopupMenuButton<String>(
-              icon: const CircleAvatar(
-                backgroundColor: Colors.amber,
-                radius: 16,
-                child: Icon(Icons.person, color: Color(0xFF004D26), size: 20),
-              ),
-              onSelected: (val) async {
-                if (val == 'admin') {
-                  Navigator.pushNamed(context, '/admin');
-                } else if (val == 'logout') {
-                  await _authService.signOut();
-                  setState(() {});
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  enabled: false,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(user.displayName ?? 'Registered Student', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
-                      Text(user.email ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem(value: 'profile', child: Text('My Profile & Progress')),
-                const PopupMenuItem(value: 'admin', child: Text('Admin Console')),
-                const PopupMenuDivider(),
-                const PopupMenuItem(value: 'logout', child: Text('Sign Out', style: TextStyle(color: Colors.red))),
-              ],
-            ),
+        actions: const [
+          // Sleek User Profile Chip with Live Session & Role State
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: UserProfileHeaderChip(),
+          ),
         ],
       ),
       body: CustomScrollView(

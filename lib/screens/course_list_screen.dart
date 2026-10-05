@@ -7,8 +7,8 @@ import '../services/auth_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/app_footer_widget.dart';
 import '../widgets/brand_logo.dart';
+import '../widgets/cs_practical_lab_section.dart';
 import '../widgets/exam_countdown_widget.dart';
-import '../widgets/practical_hub_widget.dart';
 import '../widgets/student_badges_widget.dart';
 import '../widgets/user_profile_chip.dart';
 import 'course_detail_screen.dart';
@@ -298,8 +298,8 @@ class _CourseListScreenState extends State<CourseListScreen> {
                       const RepaintBoundary(child: StudentBadgesWidget()),
                       const SizedBox(height: 12),
 
-                      // Categorized Modular Computing Practical Hub
-                      const RepaintBoundary(child: PracticalHubWidget()),
+                      // Rebranded CS Practical & Interactive Lab Section
+                      const RepaintBoundary(child: CsPracticalLabSection()),
                       const SizedBox(height: 16),
 
                       const Text(

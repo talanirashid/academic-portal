@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/admin_payment_approval_screen.dart';
+import 'screens/command_center_screen.dart';
 import 'screens/course_list_screen.dart';
 import 'screens/exam_cheat_sheet_screen.dart';
 import 'screens/fbise_solved_exercises_screen.dart';
@@ -66,6 +67,7 @@ class AcademicPortalApp extends StatelessWidget {
         '/cheat-sheet': (context) => const ExamCheatSheetScreen(),
         '/solved-exercises': (context) => const FbiseSolvedExercisesScreen(),
         '/payment': (context) => const PaymentSubmissionScreen(),
+        '/command-center': (context) => const CommandCenterScreen(),
         '/admin': (context) => const AdminDashboardScreen(),
         '/admin/approvals': (context) => const AdminPaymentApprovalScreen(),
       },

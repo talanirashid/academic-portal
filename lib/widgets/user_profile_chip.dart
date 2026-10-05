@@ -182,7 +182,7 @@ class UserProfileHeaderChip extends StatelessWidget {
                     Navigator.pushNamed(context, '/profile');
                     break;
                   case 'admin':
-                    Navigator.pushNamed(context, '/admin');
+                    Navigator.pushNamed(context, '/command-center');
                     break;
                   case 'logout':
                     await AuthService.signOutWeb(context);
@@ -220,9 +220,9 @@ class UserProfileHeaderChip extends StatelessWidget {
                     value: 'admin',
                     child: Row(
                       children: [
-                        Icon(Icons.admin_panel_settings, color: Colors.amber, size: 20),
+                        Icon(Icons.dashboard_customize, color: Colors.amber, size: 20),
                         SizedBox(width: 12),
-                        Text('Admin Console', style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Command Center', style: TextStyle(fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),

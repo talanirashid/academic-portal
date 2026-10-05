@@ -1,6 +1,8 @@
 library;
 
 /// Unified barrel export file providing clean, single-line imports for all PCSA data models.
+export 'academic_models.dart';
+export 'course_content.dart';
 export 'course_model.dart';
 export 'fbise_exercise_model.dart';
 export 'module_model.dart';

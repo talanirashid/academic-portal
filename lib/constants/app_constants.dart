@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class AppConstants {
   // Official Brand Asset Paths
-  static const String appLogo = 'assets/images/logo.png';
+  static const String appLogo = 'assets/images/pcsa_logo.png';
   static const String appTitle = 'Pakistan Computer Science Academy';
   static const String appShortTitle = 'PCSA';
 

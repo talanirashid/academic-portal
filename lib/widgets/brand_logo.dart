@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 /// Reusable brand logo widget for PCSA Web Portal with Flutter Web error fallback.
 class PCSABrandLogo extends StatelessWidget {
@@ -18,7 +19,7 @@ class PCSABrandLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget logoWidget = Image.asset(
-      'assets/images/logo.png',
+      AppConstants.appLogo,
       height: height,
       width: width,
       fit: BoxFit.contain,

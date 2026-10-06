@@ -2,14 +2,15 @@
 
 A cross-platform (Web & Android) educational streaming, interactive lab solver, and resource distribution portal tailored for Pakistani secondary and higher secondary CS curricula (FBISE Federal Board & Sindh Textbook Boards - Grades 9, 10, 11 & 12).
 
-🌐 **Production Web URL:** [https://academic-portal-pk.web.app](https://academic-portal-pk.web.app)  
+🌐 **Primary Web Production URL:** [https://pcsacademy.web.app](https://pcsacademy.web.app)  
+🌐 **Fallback Hosting Target:** [https://academic-portal-pk.web.app](https://academic-portal-pk.web.app)  
 📱 **Direct Android Release APK:** [PCSA-Academic-Portal-v1.0.0-arm64.apk](https://github.com/talanirashid/academic-portal/releases/download/v1.0.0/PCSA-Academic-Portal-v1.0.0-arm64.apk)
 
 ---
 
 ## 🏛️ Verified Institutional Credentials
 
-- **Official Brand Logo Asset:** `assets/images/logo.png`
+- **Official Brand Logo Asset:** `assets/images/pcsa_logo.png`
 - **Official Support Email:** `pcsacademy.pk@gmail.com`
 - **Official Helpline / WhatsApp:** `+92 333 6366291` (`923336366291`)
 - **Unified Social Handle (`@PCSAcademypk`):**
@@ -23,35 +24,40 @@ A cross-platform (Web & Android) educational streaming, interactive lab solver, 
 
 ## 🚀 Key Portal Features
 
-- **Multi-Page Web Routing & Deep-Linking:** Full path routing (`/`, `/login`, `/register`, `/profile`, `/solved-exercises`, `/past-papers`, `/cheat-sheet`, `/payment`, `/admin`, `/admin/approvals`) supporting browser back/forward history and direct link sharing.
-- **Reactive Header Action & User Session Widget (`UserHeaderActionWidget`):** Live stream subscription to `FirebaseAuth.instance.authStateChanges()` combined with Cloud Firestore `/users/{uid}` profile snapshots, displaying student name, photo, and **`ADMIN` Amber Badge**.
-- **Standardized Student Onboarding & Registration:**
-  - Full Name Field & WhatsApp Mobile Number (`03XX-XXXXXXX` format validation).
-  - Educational Board Selector (`FBISE Islamabad`, `STBB Sindh Boards`, `Other Boards`).
-  - STBB Helper Note: *"Covers Karachi, Hyderabad, Sukkur, Larkana, Mirpurkhas, and SBA under the standardized provincial STBB curriculum."*
-  - Class Stream Selector (`Class 9th SSC-I`, `Class 10th SSC-II`, `Class 11th HSSC-I`, `Class 12th HSSC-II`).
-  - Forgot Password Reset Email workflow (`FirebaseAuth.instance.sendPasswordResetEmail`).
-  - Dual Sign-In: Email/Password or 1-tap Google Sign-In (`GoogleAuthProvider`).
-- **Student Profile & Referral Engine (`StudentProfileScreen` at `/profile`):**
-  - Profile management, password reset triggers, active subscription badges, and unique referral code sharing (`PCSA_A1B2C3`) for free Pro Pass rewards.
-- **Interactive Syllabus Preparation Tracker (`SyllabusTrackerWidget`):**
-  - Unit topic checklist (*Theory Read*, *SLO MCQs Passed*, *ERQs Revised*, *Lab Practiced*) with visual progress percentage bar (*"70% Prepared"*).
-- **Academic Session Progression & Class Upgrade Loop (`SessionLifecycleService` & `ClassProgressionModal`):**
-  - Automated promotion path mapping (`9th -> 10th`, `11th -> 12th`).
-  - Hard-cutoff expiration policy terminating subscriptions at annual board exam deadlines.
-  - Returning Student Continuity Discount modal offering **Rs. 850** renewal pricing (saving Rs. 150 off Rs. 999 standard rate) with 1-click WhatsApp instant activation.
-- **Centralized Session Date Controller (`AdminExamSessionManager`):**
-  - Admin DatePicker UI to extend annual board exam deadlines across all enrolled students in real time.
-- **FBISE Grade 11 Solved Textbook Exercises & Quizzes:** Solved short questions, long board questions, and practice quizzes with green/red option selection feedback.
-- **Google Drive & NotebookLM Integration (`GoogleDriveHelper`):** Automatic share link conversion for direct streamable PDF keybooks and NotebookLM AI audio podcast lectures.
-- **Modular Computing Solver & Practical Hub (`PracticalHubWidget`):**
-  - 🧠 **CPU & Digital Logic** (CPU Fetch-Execute Cycle Simulator, Logic Gate Playground)
-  - 🧮 **Number Systems & K-Map** (2's Complement Solver, K-Map Simplifier, Base Remainder Calculator)
-  - 💻 **Programming & OS** (Class 12 C++ Code Runner & Memory Tracer, OS Gantt Scheduler)
-  - 🌐 **Networks & DBMS** (Subnetting CIDR Calculator, SQL Sandbox, OSI 7-Layer, ER Normalization)
-  - 📖 **Glossary & Acronyms** (Bilingual Technical Glossary, Computing Acronyms)
-- **Anti-Piracy Protection:** Dynamic student attribution watermarking (`PdfService`) and text selection/shortcut shield (`ProtectedContentWrapper`).
-- **Financial Analytics Console (`AdminPaymentApprovalScreen`):** Real-time daily PKR revenue metrics, pending/approved request counts, and Student Retention Rate % tracking.
+- **Multi-Page Web Routing & Deep-Linking:** Full path routing (`/`, `/login`, `/register`, `/profile`, `/solved-exercises`, `/past-papers`, `/cheat-sheet`, `/payment`, `/command-center`, `/admin`, `/admin/approvals`) supporting browser back/forward history and direct link sharing.
+- **PCSA Command Center (`/command-center`):**
+  - **Module 1: Student Payment Verification Pipeline:** Fast TRX ID verification, `[RENEWAL]` vs `[NEW ENROLLMENT]` badges, and 1-click WhatsApp notification.
+  - **Module 2: Course & Chapter Publisher:** Cascading board & class grade dropdowns (restricting 9th/10th for BSEK and 11th/12th for BIEK) with official 2026 textbook unit dropdown selectors (`DriveVaultConfig`).
+  - **Module 3: Student Directory & Active Passes:** StreamBuilder roster with role audit and pass management.
+  - **Module 4: Regional Board Analytics:** Real-time revenue PKR metrics and Student Retention Rate % tracking across all 8 Pakistani boards.
+- **CS Practical & Interactive Lab (`CsPracticalLabSection`):**
+  - **Tab 1: `[Board Practicals & Solved Copies]`:** Official Journal Tasks with watermarked PDF copies and Viva Voce Q&As.
+  - **Tab 2: `[Interactive Visual Simulators]`:** CPU Instruction Cycle, Logic Gates & Truth Tables, K-Map 2-Variable Simplifier, 2's Complement Subtraction, OS Gantt Scheduler, CIDR Subnetting Calculator, DBMS SQL Sandbox, OSI 7-Layer Inspector, and ER Normalization.
+  - **Tab 3: `[Code Runner & Reference]`:** In-Browser C++ & Python Code Runner pre-loaded with board-mandated programs + Technical Glossary & Acronyms Accordion.
+- **Centralized Drive DataCenter & Obfuscation (`DriveVaultConfig` & `GoogleDriveHelper`):**
+  - Master Folder ID obfuscated via compile-time Base64 reverse encryption (`MXZwSXo3MF9MdXNqWW1TTk1PYnpKUVhHZUVjSzAzaE83`), preventing raw ID exposure in public git commits.
+  - Cryptographic link resolver extracting File IDs from share links, embed URLs, and uc export links.
+  - Reusable `DrivePdfActionButton` providing clean responsive PDF viewing/downloading with upload pending fallback banners.
+- **Reactive Header Action Widget (`UserProfileHeaderChip`):** Live stream subscription to `FirebaseAuth.instance.authStateChanges()` combined with Cloud Firestore `/users/{uid}` profile snapshots, displaying user avatar, name, and **`ADMIN` Amber Badge**.
+- **Standardized Student Onboarding & Registration:** Full Name, WhatsApp Mobile (`03XX-XXXXXXX`), Board Selector (`FBISE`, `STBB`, `Other Boards`), Class Stream (`9th`, `10th`, `11th`, `12th`), Forgot Password Reset Email, and Google Sign-In.
+- **Student Profile & Referral Engine (`StudentProfileScreen` at `/profile`):** Profile management, active subscription badges, unique referral code sharing (`PCSA_A1B2C3`), and interactive unit topic checklist ([`SyllabusTrackerWidget`](file:///F:/FlutterProjects/academic_portal/lib/widgets/syllabus_tracker_widget.dart)).
+- **Academic Session Progression & Class Upgrade Loop (`SessionLifecycleService` & `ClassProgressionModal`):** Automated promotion mapping (`9th -> 10th`, `11th -> 12th`) and returning student renewal discount (**Rs. 850** instead of Rs. 999).
+- **Anti-Piracy Protection:** Dynamic student attribution watermarking (`PdfService`) and selection/shortcut shield (`ProtectedContentWrapper`).
+
+---
+
+## 🔐 Enterprise Backend Architecture
+
+1. **Least-Privilege Firestore Security Rules (`firestore.rules`):**
+   - Enforces read/write security across `users`, `active_passes`, `payment_verifications`, `curriculums`, and `system_configs`.
+2. **Composite Query Index Definitions (`firestore.indexes.json`):**
+   - 5 composite indexes ensuring zero latency on sorted queues and multi-field queries.
+3. **Cloud Storage Anti-Piracy Rules & CORS (`storage.rules` & `cors.json`):**
+   - Size limits (5MB for receipt images, 35MB for curriculum PDFs) and CORS origins configured for `pcsacademy.web.app`.
+4. **Automated n8n Payment Webhook Function (`functions/index.js`):**
+   - Node 20 Cloud Function (`processAutomatedPaymentWebhook`) handling automated EasyPaisa/JazzCash SMS ingestion via n8n and atomic pass activation.
+5. **Admin Custom Claims Provisioning Script (`scripts/grant_admin.js`):**
+   - Standalone CLI Node script setting `admin: true` custom auth claims in Firebase Auth JWT.
 
 ---
 
@@ -74,9 +80,15 @@ lib/
 ├── firebase_options.example.dart       # Public template for Firebase options
 ├── main.dart                           # App entry point, MaterialApp routes & Firebase init
 ├── constants/
+│   ├── app_config.dart                 # Primary hosting domain constants (pcsacademy.web.app)
 │   └── app_constants.dart              # Centralized logo asset, contact details & link launchers
+├── core/
+│   └── config/
+│       └── drive_vault_config.dart     # Obfuscated Base64 DataCenter vault & 2026 unit lists
 ├── models/
 │   ├── models.dart                     # Unified barrel export file
+│   ├── academic_models.dart            # AcademicClass, CurriculumStream & 8 AcademicBoard registry
+│   ├── course_content.dart             # SubLecture, ChapterItem & ComprehensiveCourse models
 │   ├── course_model.dart               # Course class & 100x in-memory cache loader
 │   ├── module_model.dart               # Module class with author & notes URL properties
 │   ├── quiz_question_model.dart        # QuizQuestion class & options parser
@@ -88,6 +100,8 @@ lib/
 ├── screens/
 │   ├── course_list_screen.dart         # Responsive catalog grid, search bar & solvers accordion
 │   ├── course_detail_screen.dart       # YouTube player, speed controls, MCQs & chapter list
+│   ├── command_center_screen.dart      # State-of-the-art PCSA Command Center (/command-center)
+│   ├── payment_verification_view.dart  # Responsive payment verification table & filter pills
 │   ├── fbise_solved_exercises_screen.dart # FBISE textbook solved Q&A & practice quizzes
 │   ├── student_auth_screen.dart        # Full-page student login & Google Sign-In (/login)
 │   ├── student_auth_dialog.dart        # Standardized student authentication modal dialog
@@ -100,18 +114,24 @@ lib/
 │   ├── exam_cheat_sheet_screen.dart    # 1-Page exam night revision sheet (/cheat-sheet)
 │   └── pdf_viewer_screen.dart          # In-app PDF viewer with dynamic watermark DRM
 ├── services/
-│   ├── auth_service.dart               # Auth, Google Sign-In, profile sync & safe pop
+│   ├── auth_service.dart               # Auth, Google Sign-In with safe rootNavigator pop & profile sync
 │   ├── access_control_service.dart     # Real-time board session deadline access evaluator
 │   ├── session_lifecycle_service.dart  # Class promotion path mapping & session-end triggers
 │   ├── payment_service.dart            # EasyPaisa/HBL account details & subscription upgrades
+│   ├── student_payment_service.dart    # Duplicate TID check & atomic pass activation transaction
 │   ├── pdf_service.dart                # Anti-piracy student attribution PDF watermarking
 │   └── mock_data_service.dart          # Firestore catalog seeding script with Unit 1 Drive link
 ├── utils/
-│   └── google_drive_helper.dart        # Direct Google Drive streamable URL parser
+│   ├── board_validator.dart            # BoardJurisdictionGuard for board/grade sanitization
+│   ├── google_drive_helper.dart        # Cryptographic Google Drive link extractor & launcher
+│   └── media_helper.dart               # YouTube nocookie embed normalization & PDF launcher
 └── widgets/
     ├── app_footer_widget.dart          # Professional web portal academic footer & social grid
-    ├── user_header_action_widget.dart   # Reactive top bar session avatar, name & Admin badge
-    ├── practical_hub_widget.dart       # Categorized modular computing solver lab grid
+    ├── brand_logo.dart                 # PCSABrandLogo with Web error fallback
+    ├── user_profile_chip.dart          # UserProfileHeaderChip reactive profile pill & Admin badge
+    ├── cs_practical_lab_section.dart   # CS Practical & Interactive Lab 3-Tab section
+    ├── drive_pdf_action_button.dart    # Reusable PDF action button with pending upload banner
+    ├── student_payment_status_widget.dart# Student payment status & resubmit banner
     ├── content_access_gate.dart        # Freemium value-hook content gate
     ├── blur_overlay.dart               # Glassmorphic cliffhanger blur overlay widget
     ├── pricing_modal.dart              # Upgrade to Pro modal with 1-click WhatsApp verification
@@ -164,21 +184,21 @@ flutter run -d chrome
 flutter run
 ```
 
-### 3. Build & Deploy
+### 3. Build & Deploy Target Site
 ```bash
 # Build web release build
 flutter build web --release
 
-# Deploy to Firebase Hosting
-firebase deploy --only hosting
+# Deploy strictly to pcsacademy_web target
+npx firebase-tools deploy --only hosting:pcsacademy_web
 ```
 
 ---
 
 ## 📋 Operational Rules & Contribution Standards
 
-- **Secrets Sanitation:** Never commit real credentials or keys. Ensure `android/app/google-services.json` and `lib/firebase_options.dart` remain in `.gitignore`.
-- **Commit Standards:** Use Conventional Commits with scope and detailed bullet points (e.g., `feat(auth): add Google Sign-In support`).
+- **Secrets Sanitation:** Never commit real credentials or keys. Ensure `android/app/google-services.json`, `serviceAccountKey.json`, and `lib/firebase_options.dart` remain in `.gitignore`.
+- **Commit Standards:** Use Conventional Commits with scope and detailed bullet points (e.g., `feat(vault): add Base64 reverse obfuscation`).
 - **Documentation:** Keep `README.md` updated whenever new modules, dependencies, or architectural changes are introduced.
 
 ---

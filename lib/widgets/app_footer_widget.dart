@@ -107,6 +107,7 @@ class AppFooterWidget extends StatelessWidget {
                       _footerLink(context, 'Solved Board Past Papers', '/past-papers'),
                       _footerLink(context, 'Exam Night Cheat Sheet', '/cheat-sheet'),
                       _footerLink(context, 'Student Account Register', '/register'),
+                      _footerLink(context, 'Privacy & Student Policy', '/privacy'),
                     ],
                   ),
                 ),

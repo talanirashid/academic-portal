@@ -1,11 +1,11 @@
 {
-  "name": "PCSA Academic Portal",
-  "short_name": "PCSA",
+  "name": "Pakistan Computer Science Academy",
+  "short_name": "PCSA Portal",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#0284C7",
-  "description": "FBISE & STBB Syllabi-Aligned Academic Portal and Interactive CS Lab",
+  "description": "FBISE & STBB Syllabi-Aligned Academic Portal, Board Practicals and Interactive CS Lab",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [

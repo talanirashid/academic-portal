@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/drive_vault_config.dart';
+import '../../../services/offline_storage_service.dart';
 import '../../../widgets/drive_pdf_action_button.dart';
 import '../models/chapter_resource_model.dart';
 
@@ -30,6 +31,11 @@ class UnitDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isStbb = unit.curriculumStream.toLowerCase() == 'stbb';
     final streamLabel = isStbb ? 'STBB Sindh Board' : 'FBISE Federal Board';
+
+    // Auto-cache notes URL in offline storage service
+    if (unit.notesDriveUrl != null && unit.notesDriveUrl!.isNotEmpty) {
+      OfflineStorageService.cacheResourceUrl(unit.id, unit.notesDriveUrl!);
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A), // Dark slate
@@ -77,17 +83,40 @@ class UnitDetailScreen extends StatelessWidget {
                           style: const TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.amber),
-                        ),
-                        child: Text(
-                          streamLabel,
-                          style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 11),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF006633).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFF006633)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.offline_pin, size: 12, color: Colors.greenAccent),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Offline Cached',
+                                  style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 10),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.amber),
+                            ),
+                            child: Text(
+                              streamLabel,
+                              style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 11),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -10,6 +10,7 @@ import 'screens/exam_cheat_sheet_screen.dart';
 import 'screens/fbise_solved_exercises_screen.dart';
 import 'screens/past_papers_screen.dart';
 import 'screens/payment_submission_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 import 'screens/student_auth_screen.dart';
 import 'screens/student_profile_screen.dart';
 import 'services/auth_service.dart';
@@ -63,6 +64,7 @@ class AcademicPortalApp extends StatelessWidget {
         '/login': (context) => const StudentAuthScreen(initialIsSignUp: false),
         '/register': (context) => const StudentAuthScreen(initialIsSignUp: true),
         '/profile': (context) => const StudentProfileScreen(),
+        '/privacy': (context) => const PrivacyPolicyScreen(),
         '/past-papers': (context) => const PastPapersScreen(),
         '/cheat-sheet': (context) => const ExamCheatSheetScreen(),
         '/solved-exercises': (context) => const FbiseSolvedExercisesScreen(),

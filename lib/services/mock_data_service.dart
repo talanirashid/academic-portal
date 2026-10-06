@@ -13,13 +13,13 @@ class MockDataService {
     try {
       final coursesRef = _firestore.collection('courses');
 
-      // 1. Class XI Computer Science
+      // 1. Class 11th Computer Science
       final course1Doc = coursesRef.doc('cs_xi_fbise');
       await course1Doc.set({
-        'title': 'Class XI Computer Science (FBISE & Sindh Board)',
+        'title': 'Class 11th Computer Science (HSSC-I / 1st Year)',
         'subject': 'Computer Science',
-        'category': 'ICS / CS',
-        'grade': 'Class 11 / HSSC-I',
+        'category': 'Class 11th (HSSC-I / 1st Year)',
+        'grade': 'Class 11th (HSSC-I / 1st Year)',
         'description':
             'Complete Class 11 Computer Science course covering Computer Systems, Office Automation, Network Communications, and Operating Systems for FBISE and Sindh Textbook Boards.',
         'instructor': 'Rashid Talani, Lecturer Computer Science',
@@ -113,13 +113,13 @@ class MockDataService {
         ]
       }, SetOptions(merge: true));
 
-      // 2. Class XII Computer Science
+      // 2. Class 12th Computer Science
       final course2Doc = coursesRef.doc('cs_xii_fbise');
       await course2Doc.set({
-        'title': 'Class XII Computer Science - Programming & Databases',
+        'title': 'Class 12th Computer Science (HSSC-II / 2nd Year)',
         'subject': 'Computer Science',
-        'category': 'ICS / CS',
-        'grade': 'Class 12 / HSSC-II',
+        'category': 'Class 12th (HSSC-II / 2nd Year)',
+        'grade': 'Class 12th (HSSC-II / 2nd Year)',
         'description':
             'Comprehensive Class 12 Computer Science course focusing on Data Structures, C++ Programming, and Database Management Systems (DBMS).',
         'instructor': 'Rashid Talani, Lecturer Computer Science',
@@ -180,6 +180,44 @@ class MockDataService {
                 'The WHERE clause filters rows based on a specified boolean condition.'
           }
         ]
+      }, SetOptions(merge: true));
+
+      // 3. Class 9th Computer Science
+      final course3Doc = coursesRef.doc('cs_ix_fbise');
+      await course3Doc.set({
+        'title': 'Class 9th Computer Science (SSC-I / Matric)',
+        'subject': 'Computer Science',
+        'category': 'Class 9th (SSC-I)',
+        'grade': 'Class 9th (SSC-I)',
+        'description':
+            'Class 9 Computer Science covering Problem Solving, Flowcharts, Algorithm Design, and Basics of Computing.',
+        'instructor': 'Rashid Talani, Lecturer Computer Science',
+        'rating': 4.9,
+        'thumbnailUrl':
+            'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800',
+        'bannerUrl':
+            'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800',
+        'isPaid': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // 4. Class 10th Computer Science
+      final course4Doc = coursesRef.doc('cs_x_fbise');
+      await course4Doc.set({
+        'title': 'Class 10th Computer Science (SSC-II / Matric)',
+        'subject': 'Computer Science',
+        'category': 'Class 10th (SSC-II)',
+        'grade': 'Class 10th (SSC-II)',
+        'description':
+            'Class 10 Computer Science covering Programming in C, Control Structures, Functions, and Logic Concepts.',
+        'instructor': 'Rashid Talani, Lecturer Computer Science',
+        'rating': 4.8,
+        'thumbnailUrl':
+            'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+        'bannerUrl':
+            'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+        'isPaid': false,
+        'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
       // ignore: avoid_print

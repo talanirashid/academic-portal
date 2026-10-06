@@ -14,6 +14,12 @@ migrate_working_dir/
 .firebase/
 android/.kotlin/
 
+# Firebase Functions
+functions/node_modules/
+functions/package-lock.json
+functions/service-account-key.json
+functions/*.key.json
+
 # Secrets & Service Keys
 serviceAccountKey.json
 bootstrap_backend.py

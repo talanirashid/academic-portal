@@ -38,9 +38,9 @@ class _CourseListScreenState extends State<CourseListScreen> {
     'All',
     'Class 9th (SSC-I)',
     'Class 10th (SSC-II)',
-    'FSc Pre-Medical',
-    'FSc Pre-Engineering',
-    'ICS / CS',
+    'Class 11th (HSSC-I / 1st Year)',
+    'Class 12th (HSSC-II / 2nd Year)',
+    'ICS / CS Group',
   ];
 
   static const String _apkDownloadUrl =
@@ -363,11 +363,28 @@ class _CourseListScreenState extends State<CourseListScreen> {
 
                   // Apply Category Filter
                   if (_selectedCategory != 'All') {
-                    courses = courses
-                        .where((c) =>
-                            c.category.contains(_selectedCategory) ||
-                            c.grade.contains(_selectedCategory))
-                        .toList();
+                    courses = courses.where((c) {
+                      final catLower = c.category.toLowerCase();
+                      final gradeLower = c.grade.toLowerCase();
+                      final selLower = _selectedCategory.toLowerCase();
+
+                      if (selLower.contains('9th') || selLower.contains('ssc-i')) {
+                        return catLower.contains('9th') || gradeLower.contains('9th') || gradeLower.contains('ssc-i');
+                      }
+                      if (selLower.contains('10th') || selLower.contains('ssc-ii')) {
+                        return catLower.contains('10th') || gradeLower.contains('10th') || gradeLower.contains('ssc-ii');
+                      }
+                      if (selLower.contains('11th') || selLower.contains('hssc-i') || selLower.contains('1st year')) {
+                        return catLower.contains('11th') || gradeLower.contains('11th') || gradeLower.contains('hssc-i') || gradeLower.contains('1st year');
+                      }
+                      if (selLower.contains('12th') || selLower.contains('hssc-ii') || selLower.contains('2nd year')) {
+                        return catLower.contains('12th') || gradeLower.contains('12th') || gradeLower.contains('hssc-ii') || gradeLower.contains('2nd year');
+                      }
+                      if (selLower.contains('ics')) {
+                        return catLower.contains('ics') || gradeLower.contains('ics');
+                      }
+                      return catLower.contains(selLower) || gradeLower.contains(selLower);
+                    }).toList();
                   }
 
                   // Apply Real-time Search Query Filter

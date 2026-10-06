@@ -26,7 +26,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   final _otherBoardController = TextEditingController();
 
   String _selectedBoard = 'Federal Board (FBISE - Islamabad)';
-  String _selectedClass = 'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)';
+  String _selectedClass = 'Class 11th (HSSC Part-I / 1st Year / ICS)';
 
   final List<String> _boards = [
     'Federal Board (FBISE - Islamabad)',
@@ -35,10 +35,10 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   ];
 
   final List<String> _classes = [
-    'Class 9th (SSC Part-I)',
-    'Class 10th (SSC Part-II)',
-    'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)',
-    'Class 12th (HSSC Part-II / ICS / Pre-Eng / Pre-Med)',
+    'Class 9th (SSC Part-I / Matric)',
+    'Class 10th (SSC Part-II / Matric)',
+    'Class 11th (HSSC Part-I / 1st Year / ICS)',
+    'Class 12th (HSSC Part-II / 2nd Year / ICS)',
   ];
 
   @override
@@ -138,6 +138,79 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     }
   }
 
+  List<Widget> _buildSignUpFormFields() {
+    if (!_isSignUp) return [];
+
+    return [
+      TextFormField(
+        controller: _nameController,
+        decoration: const InputDecoration(
+          labelText: 'Full Student Name',
+          prefixIcon: Icon(Icons.person, color: Color(0xFF006633)),
+          border: OutlineInputBorder(),
+        ),
+        validator: (v) => v == null || v.trim().length < 3 ? 'Enter valid name (3+ chars)' : null,
+      ),
+      const SizedBox(height: 14),
+      TextFormField(
+        controller: _phoneController,
+        keyboardType: TextInputType.phone,
+        decoration: const InputDecoration(
+          labelText: 'WhatsApp Mobile Number (e.g. 03001234567)',
+          prefixIcon: Icon(Icons.phone, color: Color(0xFF006633)),
+          border: OutlineInputBorder(),
+        ),
+        validator: (v) => v == null || v.trim().length < 11 ? 'Enter valid 11-digit mobile number' : null,
+      ),
+      const SizedBox(height: 14),
+      DropdownButtonFormField<String>(
+        initialValue: _selectedBoard,
+        decoration: const InputDecoration(
+          labelText: 'Educational Board',
+          border: OutlineInputBorder(),
+        ),
+        items: _boards.map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+        onChanged: (val) {
+          if (val != null) setState(() => _selectedBoard = val);
+        },
+      ),
+      const SizedBox(height: 4),
+      if (_selectedBoard.contains('Sindh Board'))
+        Container(
+          padding: const EdgeInsets.all(8),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
+          child: const Text(
+            'ℹ️ Covers Karachi, Hyderabad, Sukkur, Larkana, Mirpurkhas, and SBA under the standardized provincial STBB curriculum.',
+            style: TextStyle(fontSize: 11, color: Colors.blue),
+          ),
+        ),
+      if (_selectedBoard.contains('Other Boards'))
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: TextFormField(
+            controller: _otherBoardController,
+            decoration: const InputDecoration(
+              labelText: 'Specify Board Name (e.g. BISE Lahore, BISE Peshawar)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ),
+      DropdownButtonFormField<String>(
+        initialValue: _selectedClass,
+        decoration: const InputDecoration(
+          labelText: 'Class / Academic Stream',
+          border: OutlineInputBorder(),
+        ),
+        items: _classes.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
+        onChanged: (val) {
+          if (val != null) setState(() => _selectedClass = val);
+        },
+      ),
+      const SizedBox(height: 14),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,79 +265,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                       ),
                       const Divider(height: 32),
 
-                      if (_isSignUp) ...[
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Full Student Name',
-                            prefixIcon: Icon(Icons.person, color: Color(0xFF006633)),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (v) => v == null || v.trim().length < 3 ? 'Enter valid name (3+ chars)' : null,
-                        ),
-                        const SizedBox(height: 14),
-
-                        TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            labelText: 'WhatsApp Mobile Number (e.g. 03001234567)',
-                            prefixIcon: Icon(Icons.phone, color: Color(0xFF006633)),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (v) => v == null || v.trim().length < 11 ? 'Enter valid 11-digit mobile number' : null,
-                        ),
-                        const SizedBox(height: 14),
-
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedBoard,
-                          decoration: const InputDecoration(
-                            labelText: 'Educational Board',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _boards.map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedBoard = val);
-                          },
-                        ),
-                        const SizedBox(height: 4),
-
-                        if (_selectedBoard.contains('Sindh Board'))
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                            child: const Text(
-                              'ℹ️ Covers Karachi, Hyderabad, Sukkur, Larkana, Mirpurkhas, and SBA under the standardized provincial STBB curriculum.',
-                              style: TextStyle(fontSize: 11, color: Colors.blue),
-                            ),
-                          ),
-
-                        if (_selectedBoard.contains('Other Boards'))
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: TextFormField(
-                              controller: _otherBoardController,
-                              decoration: const InputDecoration(
-                                labelText: 'Specify Board Name (e.g. BISE Lahore, BISE Peshawar)',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedClass,
-                          decoration: const InputDecoration(
-                            labelText: 'Class / Academic Stream',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _classes.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))).toList(),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedClass = val);
-                          },
-                        ),
-                        const SizedBox(height: 14),
-                      ],
+                      ..._buildSignUpFormFields(),
 
                       TextFormField(
                         controller: _emailController,

@@ -24,7 +24,7 @@ class _StudentAuthDialogState extends State<StudentAuthDialog> {
   final _otherBoardController = TextEditingController();
 
   String _selectedBoard = 'Federal Board (FBISE - Islamabad)';
-  String _selectedClass = 'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)';
+  String _selectedClass = 'Class 11th (HSSC Part-I / 1st Year / ICS)';
 
   final List<String> _boards = [
     'Federal Board (FBISE - Islamabad)',
@@ -33,10 +33,10 @@ class _StudentAuthDialogState extends State<StudentAuthDialog> {
   ];
 
   final List<String> _classes = [
-    'Class 9th (SSC Part-I)',
-    'Class 10th (SSC Part-II)',
-    'Class 11th (HSSC Part-I / ICS / Pre-Eng / Pre-Med)',
-    'Class 12th (HSSC Part-II / ICS / Pre-Eng / Pre-Med)',
+    'Class 9th (SSC Part-I / Matric)',
+    'Class 10th (SSC Part-II / Matric)',
+    'Class 11th (HSSC Part-I / 1st Year / ICS)',
+    'Class 12th (HSSC Part-II / 2nd Year / ICS)',
   ];
 
   @override

@@ -24,7 +24,7 @@ service cloud.firestore {
     // --- USER ACCOUNTS & PASS SUBCOLLECTIONS ---
     match /users/{userId} {
       // Profile can be read by owner or admin
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isAuthenticated();
       // Allow self-registration without role tampering
       allow create: if isOwner(userId) &&
         request.resource.data.get('role', 'student') == 'student';
@@ -35,7 +35,7 @@ service cloud.firestore {
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin', 'permissions'])
       );
 
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || isOwner(userId);
 
       // Active Passes Subcollection (Controls access to specific Board & Grade)
       match /active_passes/{passId} {
@@ -49,12 +49,15 @@ service cloud.firestore {
       }
     }
 
-    // --- PAYMENT VERIFICATION PIPELINE (JAZZCASH / EASYPAISA / BANK) ---
-    match /payment_verifications/{verificationId} {
-      // Students view only their own records; Admins audit all
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+    // --- ENROLLMENT & PAYMENT REQUESTS PIPELINE ---
+    match /enrollment_requests/{requestId} {
+      allow create: if isAuthenticated() && request.resource.data.studentUid == request.auth.uid;
+      allow read: if isAuthenticated() && (resource.data.studentUid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
 
-      // Student initial submission guard: Enforce status == 'pending' and clean TID payload
+    match /payment_verifications/{verificationId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuthenticated() &&
         request.resource.data.uid == request.auth.uid &&
         request.resource.data.status == 'pending' &&
@@ -62,9 +65,7 @@ service cloud.firestore {
         request.resource.data.tid.size() >= 6 &&
         request.resource.data.rejectionReason == null;
 
-      // Only Admins or backend Cloud Functions can transition status to 'approved' or 'rejected'
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
     // --- UNCLAIMED SMS / TID DEPOSITS LEDGER ---
@@ -73,6 +74,11 @@ service cloud.firestore {
     }
 
     // --- ACADEMIC CURRICULA & COURSE CHAPTERS ---
+    match /curriculum_resources/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /curriculums/{stream} {
       allow read: if true;
       allow write: if isAdmin();

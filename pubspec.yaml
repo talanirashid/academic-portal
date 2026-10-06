@@ -1,5 +1,5 @@
 name: academic_portal
-description: "A new Flutter project."
+description: "Pakistan Computer Science Academy (PCSA) Academic Portal & Resource Hub"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -15,6 +15,8 @@ dependencies:
   firebase_core: ^3.12.1
   cloud_firestore: ^5.6.5
   firebase_auth: ^5.5.1
+  cloud_functions: ^5.2.5
+  file_picker: ^8.1.7
   youtube_player_iframe: ^5.2.1
   url_launcher: ^6.3.1
   google_fonts: ^6.2.1

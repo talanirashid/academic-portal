@@ -1,0 +1,177 @@
+[
+  {
+    "id": "stbb_11_u1_q01",
+    "question": "Which of the following physical quantities is classified as a continuous quantity?",
+    "options": ["Number of books on a shelf", "Temperature of water", "Number of students in a class", "Number of cars in a parking lot"],
+    "correctIndex": 1,
+    "explanation": "Continuous quantities vary smoothly without discrete breaks and can take an infinite number of values within a range, such as temperature."
+  },
+  {
+    "id": "stbb_11_u1_q02",
+    "question": "Which mathematical system operating on binary variables (0 and 1) was formulated by George Boole in 1847?",
+    "options": ["Differential Calculus", "Boolean Algebra", "Linear Matrix Algebra", "Trigonometric Geometry"],
+    "correctIndex": 1,
+    "explanation": "Boolean Algebra is a mathematical structure where variables take binary logic values: 1 (True) or 0 (False)."
+  },
+  {
+    "id": "stbb_11_u1_q03",
+    "question": "When evaluating a complex Boolean expression, which operator holds the highest precedence?",
+    "options": ["OR (+)", "AND (·)", "NOT (')", "Parentheses ()"],
+    "correctIndex": 3,
+    "explanation": "Parentheses () always take highest precedence in Boolean evaluation, followed by NOT, AND, and OR."
+  },
+  {
+    "id": "stbb_11_u1_q04",
+    "question": "In Logisim Evolution, what does a bright green wire during simulation indicate?",
+    "options": ["Logic LOW (0)", "Logic HIGH (1)", "Unconnected / Floating Line", "Short Circuit Error"],
+    "correctIndex": 1,
+    "explanation": "Bright green wire indicates a Logic HIGH (1) state carrying positive supply voltage."
+  },
+  {
+    "id": "stbb_11_u1_q05",
+    "question": "In Logisim Evolution, a blue wire during circuit simulation indicates:",
+    "options": ["Logic HIGH (1)", "Logic LOW (0)", "Unconnected or floating line (unknown value)", "Electrical short circuit"],
+    "correctIndex": 2,
+    "explanation": "Blue wire indicates an unknown value where an input or gate pin has not been connected."
+  },
+  {
+    "id": "stbb_11_u1_q06",
+    "question": "Which logic gate produces a HIGH (1) output if and only if all of its inputs are HIGH (1)?",
+    "options": ["OR Gate", "AND Gate", "NOR Gate", "XOR Gate"],
+    "correctIndex": 1,
+    "explanation": "An AND gate gives a 1 output only when all input signals are 1."
+  },
+  {
+    "id": "stbb_11_u1_q07",
+    "question": "Why are NAND and NOR gates classified as 'Universal Gates'?",
+    "options": ["They are used in space satellites", "Any fundamental logic operation can be constructed using only NAND or only NOR gates", "They consume zero electrical power", "They do not require truth tables"],
+    "correctIndex": 1,
+    "explanation": "NAND and NOR gates are universal because any Boolean function (AND, OR, NOT) can be synthesized using exclusively NAND or NOR gates."
+  },
+  {
+    "id": "stbb_11_u1_q08",
+    "question": "Which logic gate produces a HIGH (1) output when its two inputs are different, and LOW (0) when identical?",
+    "options": ["AND Gate", "XOR Gate", "XNOR Gate", "NOR Gate"],
+    "correctIndex": 1,
+    "explanation": "The XOR (Exclusive-OR) gate outputs 1 when inputs differ (01 or 10) and outputs 0 when inputs are the same (00 or 11)."
+  },
+  {
+    "id": "stbb_11_u1_q09",
+    "question": "In a Karnaugh Map (K-Map), adjacent cells are arranged using which binary encoding sequence?",
+    "options": ["Standard Binary Code", "Gray Code", "BCD Code", "ASCII Code"],
+    "correctIndex": 1,
+    "explanation": "K-Maps use Gray Code ordering (00, 01, 11, 10) where adjacent cells differ by exactly one binary bit."
+  },
+  {
+    "id": "stbb_11_u1_q10",
+    "question": "How many total cells are present in a 3-variable Karnaugh Map?",
+    "options": ["4", "6", "8", "16"],
+    "correctIndex": 2,
+    "explanation": "For n variables, a K-Map contains 2^n cells. For 3 variables, 2^3 = 8 cells."
+  },
+  {
+    "id": "stbb_11_u1_q11",
+    "question": "In Boolean Algebra, a product term containing all variables in true or complemented form is called a:",
+    "options": ["Maxterm", "Minterm", "Octet", "Quad"],
+    "correctIndex": 1,
+    "explanation": "A minterm is an AND (product) term containing every variable of the function in either true or complemented form."
+  },
+  {
+    "id": "stbb_11_u1_q12",
+    "question": "Which Logisim Evolution toolbar tool is used to toggle input pin values between 0 and 1 during live simulation?",
+    "options": ["Select Tool (Arrow)", "Poke Tool (Hand Icon)", "Wiring Tool", "Text Tool"],
+    "correctIndex": 1,
+    "explanation": "The Poke Tool (hand icon) allows users to click on input pins to toggle their state between 0 and 1."
+  },
+  {
+    "id": "stbb_11_u1_q13",
+    "question": "Which document is the primary official deliverables created during the SDLC Planning & Analysis phase?",
+    "options": ["Entity Relationship Diagram (ERD)", "Software Requirements Specification (SRS)", "User Acceptance Test Report", "Source Code Binary"],
+    "correctIndex": 1,
+    "explanation": "The SRS document formally details all functional and non-functional requirements created during the planning phase."
+  },
+  {
+    "id": "stbb_11_u1_q14",
+    "question": "Which testing methodology evaluates software functionality without any visibility into the internal source code?",
+    "options": ["White Box Testing", "Black Box Testing", "Unit Path Testing", "Code Inspection"],
+    "correctIndex": 1,
+    "explanation": "Black Box testing focuses purely on inputs and outputs against SRS requirements without looking at internal code."
+  },
+  {
+    "id": "stbb_11_u1_q15",
+    "question": "Which deployment strategy carries the lowest operational risk by running the old and new systems simultaneously?",
+    "options": ["Direct Deployment", "Parallel Deployment", "Phased Deployment", "Pilot Deployment"],
+    "correctIndex": 1,
+    "explanation": "Parallel deployment runs both old and new systems concurrently, ensuring zero downtime or data loss if the new system encounters a bug."
+  },
+  {
+    "id": "stbb_11_u1_q16",
+    "question": "Software maintenance performed to update software to run on a newly released Operating System version is classified as:",
+    "options": ["Corrective Maintenance", "Adaptive Maintenance", "Perfective Maintenance", "Preventive Maintenance"],
+    "correctIndex": 1,
+    "explanation": "Adaptive maintenance updates software to keep it compatible with changes in the surrounding environment, such as new OS versions."
+  },
+  {
+    "id": "stbb_11_u1_q17",
+    "question": "Which software development model follows a strictly linear, sequential phase-by-phase approach?",
+    "options": ["Agile Scrum Model", "Waterfall Model", "Spiral Model", "RAD Model"],
+    "correctIndex": 1,
+    "explanation": "The Waterfall model flows sequentially downwards through planning, design, coding, testing, and deployment."
+  },
+  {
+    "id": "stbb_11_u1_q18",
+    "question": "In the Agile Scrum framework, a time-boxed iteration cycle lasting 2 to 4 weeks is known as a:",
+    "options": ["Milestone", "Sprint", "Product Backlog", "Waterbreak"],
+    "correctIndex": 1,
+    "explanation": "A Sprint is a time-boxed development cycle (usually 2-4 weeks) that yields a working software increment."
+  },
+  {
+    "id": "stbb_11_u1_q19",
+    "question": "In Logisim Evolution, a red or orange wire during simulation indicates:",
+    "options": ["Logic HIGH (1)", "Logic LOW (0)", "Unconnected line", "Error or conflicting logic output"],
+    "correctIndex": 3,
+    "explanation": "Red/Orange wire indicates a conflict error, such as two opposing logic signals driving the same wire."
+  },
+  {
+    "id": "stbb_11_u1_q20",
+    "question": "Which software methodology was chosen for the Al-Noor Library Management System due to its fixed, well-defined institutional rules?",
+    "options": ["Agile Scrum Model", "Waterfall Model", "Extreme Programming", "Kanban"],
+    "correctIndex": 1,
+    "explanation": "Waterfall model was selected for the LMS because library rules and fee calculations were completely fixed and stable."
+  },
+  {
+    "id": "stbb_11_u1_q21",
+    "question": "Which software methodology was chosen for the Al-Noor Student Mobile App to support iterative feature updates and continuous student feedback?",
+    "options": ["Waterfall Model", "Agile Scrum Model", "V-Model", "Big Bang Model"],
+    "correctIndex": 1,
+    "explanation": "Agile Scrum enabled 2-week Sprint releases for the mobile app, allowing continuous feature additions and UI updates."
+  },
+  {
+    "id": "stbb_11_u1_q22",
+    "question": "The Boolean identity X + X' = 1 is known as the:",
+    "options": ["Idempotent Law", "Complement Law", "Distributive Law", "Commutative Law"],
+    "correctIndex": 1,
+    "explanation": "The Complement Law states that OR-ing a variable with its negation always equals 1."
+  },
+  {
+    "id": "stbb_11_u1_q23",
+    "question": "Which tool in Logisim Evolution is used to draw conductive signal connections between component pins?",
+    "options": ["Poke Tool", "Select Tool", "Wiring Tool", "Attribute Table"],
+    "correctIndex": 2,
+    "explanation": "The Wiring Tool allows users to draw signal lines between pins on the canvas."
+  },
+  {
+    "id": "stbb_11_u1_q24",
+    "question": "Which type of software testing is conducted by developers using full visibility of internal code pathways?",
+    "options": ["Black Box Testing", "White Box Testing", "User Acceptance Testing (UAT)", "Beta Testing"],
+    "correctIndex": 1,
+    "explanation": "White Box testing involves examining the internal code structure, logic paths, and unit execution."
+  },
+  {
+    "id": "stbb_11_u1_q25",
+    "question": "In the Agile Scrum framework, the daily 15-minute alignment meeting is called the:",
+    "options": ["Sprint Review", "Product Backlog Grooming", "Daily Standup", "Retrospective"],
+    "correctIndex": 2,
+    "explanation": "The Daily Standup is a short 15-minute team meeting to sync on progress, plans, and blockers."
+  }
+]

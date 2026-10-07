@@ -8,6 +8,42 @@ class MockDataService {
   static const String unit1GoogleDriveKeybookUrl =
       'https://drive.google.com/open?id=1VHFjBTNHy7FT0n2gZbTT-tGGy1KZ5Fm3&usp=drive_fs';
 
+  /// 1-Click Browser Seeder for Official STBB Class 11 Unit 1 Syllabus Bundle
+  static Future<void> seedSTBBUnit01ToFirestore() async {
+    final docId = 'stbb_cs_class11_unit01';
+    final payload = {
+      'id': docId,
+      'board': 'STBB',
+      'curriculumStream': 'stbb',
+      'class': 11,
+      'targetClass': 'class_11',
+      'unitNumber': 1,
+      'unitTitle': 'Computer Systems & Logic Design',
+      'description':
+          'Official 2026 STBB Curriculum: Discrete vs Continuous Quantities, Boolean Algebra & 7 Logic Gates, Canonical Forms & K-Maps, Logisim Evolution v3.9+, 6 SDLC Phases, and Waterfall & Agile Case Studies.',
+      'isLocked': false, // Free preview MVP
+      'isPublished': true,
+      'topics': [
+        'Discrete vs Continuous',
+        'Digital Signals',
+        'Boolean Algebra',
+        'Logic Gates',
+        'K-Maps',
+        'Logisim Evolution',
+        'SDLC Phases',
+        'Waterfall & Agile Models',
+      ],
+      'notesDriveUrl': 'https://drive.google.com/open?id=1vpIz70_LusjYmSNMObzBQXGeEcK0zhO7',
+      'solvedExercisesDriveUrl': 'https://drive.google.com/open?id=1vpIz70_LusjYmSNMObzBQXGeEcK0zhO7',
+      'labJournalDriveUrl': 'https://drive.google.com/open?id=1vpIz70_LusjYmSNMObzBQXGeEcK0zhO7',
+      'pastPapersDriveUrl': 'https://drive.google.com/open?id=1vpIz70_LusjYmSNMObzBQXGeEcK0zhO7',
+      'updatedAt': FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    await _firestore.collection('curriculum_resources').doc(docId).set(payload, SetOptions(merge: true));
+  }
+
   /// Force writes courses and nested sub-collection modules directly into Firestore.
   static Future<void> forceSeedDatabase() async {
     try {
@@ -220,9 +256,12 @@ class MockDataService {
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      // Auto-seed official STBB Unit 1 bundle as well
+      await seedSTBBUnit01ToFirestore();
+
       // ignore: avoid_print
       print(
-          '>>> [Firebase] Database successfully populated with updated Unit 1 Google Drive Keybook! <<<');
+          '>>> [Firebase] Database successfully populated with updated Unit 1 Google Drive Keybook & STBB Syllabus Bundle! <<<');
     } catch (e) {
       // ignore: avoid_print
       print('>>> [Firebase] Error seeding database: $e <<<');

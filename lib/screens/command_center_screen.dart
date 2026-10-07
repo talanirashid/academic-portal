@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/config/drive_vault_config.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
+import '../services/mock_data_service.dart';
 import '../services/payment_service.dart';
 import '../utils/google_drive_helper.dart';
 import 'admin_exam_session_manager.dart';
@@ -480,6 +481,42 @@ class _CommandCenterScreenState extends State<CommandCenterScreen> with SingleTi
               ],
 
               const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF006633),
+                        side: const BorderSide(color: Color(0xFF006633)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () async {
+                        try {
+                          await MockDataService.seedSTBBUnit01ToFirestore();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('STBB Class 11 Unit 1 Syllabus Bundle seeded into Firestore live!'),
+                                backgroundColor: Color(0xFF006633),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Seeding Error: $e')),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.bolt, color: Colors.amber, size: 18),
+                      label: const Text('1-Click Seed Official STBB Unit 1 Bundle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
               SizedBox(
                 width: double.infinity,

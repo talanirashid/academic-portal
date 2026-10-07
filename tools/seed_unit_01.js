@@ -37,6 +37,7 @@ if (fs.existsSync(serviceAccountPath)) {
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  projectId: serviceAccount.project_id || 'academic-portal-pk',
 });
 
 const db = admin.firestore();

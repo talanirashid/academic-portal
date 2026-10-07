@@ -267,6 +267,15 @@ class _CourseListScreenState extends State<CourseListScreen> {
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: ActionChip(
+                                avatar: const Icon(Icons.collections_bookmark, size: 16, color: Colors.amberAccent),
+                                backgroundColor: const Color(0xFF004D26),
+                                label: const Text('STBB & FBISE Curriculum Vault', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                onPressed: () => Navigator.pushNamed(context, '/hub'),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ActionChip(
                                 avatar: const Icon(Icons.quiz, size: 16, color: Colors.white),
                                 backgroundColor: const Color(0xFF006633),
                                 label: const Text('FBISE Solved Exercises & Quizzes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
+import 'features/curriculum/screens/curriculum_hub_screen.dart';
+import 'features/profile/screens/student_profile_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/admin_payment_approval_screen.dart';
 import 'screens/command_center_screen.dart';
@@ -12,7 +14,6 @@ import 'screens/past_papers_screen.dart';
 import 'screens/payment_submission_screen.dart';
 import 'screens/privacy_policy_screen.dart';
 import 'screens/student_auth_screen.dart';
-import 'screens/student_profile_screen.dart';
 import 'services/auth_service.dart';
 import 'services/mock_data_service.dart';
 
@@ -65,6 +66,7 @@ class AcademicPortalApp extends StatelessWidget {
         '/register': (context) => const StudentAuthScreen(initialIsSignUp: true),
         '/profile': (context) => const StudentProfileScreen(),
         '/privacy': (context) => const PrivacyPolicyScreen(),
+        '/hub': (context) => const CurriculumHubScreen(),
         '/past-papers': (context) => const PastPapersScreen(),
         '/cheat-sheet': (context) => const ExamCheatSheetScreen(),
         '/solved-exercises': (context) => const FbiseSolvedExercisesScreen(),

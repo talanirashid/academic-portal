@@ -9,6 +9,9 @@ class AppConfig {
   static const String fallbackHostingDomain = 'academic-portal-pk.web.app';
   static const String baseUrl = 'https://$primaryHostingDomain';
 
+  // API Keys (Obfuscate or load from environment in strict prod)
+  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE';
+
   // Support & Payment Accounts
   static const String officialWhatsAppNumber = '923336366291';
   static const String jazzCashAccountTitle = 'PCS Academy Operations';

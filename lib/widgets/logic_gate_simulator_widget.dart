@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Interactive logic gate playground allowing students to toggle inputs and evaluate gate outputs.
 class LogicGateSimulatorWidget extends StatefulWidget {
   const LogicGateSimulatorWidget({super.key});
 
@@ -10,216 +9,187 @@ class LogicGateSimulatorWidget extends StatefulWidget {
 
 class _LogicGateSimulatorWidgetState extends State<LogicGateSimulatorWidget> {
   String _selectedGate = 'AND';
-  bool _inputA = false;
-  bool _inputB = false;
+  int _inputA = 0;
+  int _inputB = 0;
 
   final List<String> _gates = ['AND', 'OR', 'NOT', 'NAND', 'NOR', 'XOR', 'XNOR'];
 
-  bool _evaluateGate(String gate, bool a, bool b) {
-    switch (gate) {
-      case 'AND':
-        return a && b;
-      case 'OR':
-        return a || b;
-      case 'NOT':
-        return !a;
-      case 'NAND':
-        return !(a && b);
-      case 'NOR':
-        return !(a || b);
-      case 'XOR':
-        return a != b;
-      case 'XNOR':
-        return a == b;
-      default:
-        return false;
+  int _calculateOutput() {
+    switch (_selectedGate) {
+      case 'AND': return (_inputA == 1 && _inputB == 1) ? 1 : 0;
+      case 'OR': return (_inputA == 1 || _inputB == 1) ? 1 : 0;
+      case 'NOT': return (_inputA == 0) ? 1 : 0; // NOT only uses Input A
+      case 'NAND': return (_inputA == 1 && _inputB == 1) ? 0 : 1;
+      case 'NOR': return (_inputA == 0 && _inputB == 0) ? 1 : 0;
+      case 'XOR': return (_inputA != _inputB) ? 1 : 0;
+      case 'XNOR': return (_inputA == _inputB) ? 1 : 0;
+      default: return 0;
+    }
+  }
+
+  Widget _buildTruthTable() {
+    final bool isSingleInput = _selectedGate == 'NOT';
+    final rows = isSingleInput
+        ? [ [0, 0, _calculateOutputFor(0, 0)], [1, 0, _calculateOutputFor(1, 0)] ]
+        : [
+            [0, 0, _calculateOutputFor(0, 0)],
+            [0, 1, _calculateOutputFor(0, 1)],
+            [1, 0, _calculateOutputFor(1, 0)],
+            [1, 1, _calculateOutputFor(1, 1)],
+          ];
+
+    return Table(
+      border: TableBorder.all(color: Colors.grey.shade300),
+      columnWidths: const {
+        0: FlexColumnWidth(1),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+      },
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: Colors.grey.shade200),
+          children: [
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('Input A', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
+            if (!isSingleInput) const Padding(padding: EdgeInsets.all(8.0), child: Text('Input B', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('Output Y', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+        ),
+        ...rows.map((row) {
+          final bool isCurrentState = isSingleInput
+              ? (row[0] == _inputA)
+              : (row[0] == _inputA && row[1] == _inputB);
+
+          return TableRow(
+            decoration: BoxDecoration(color: isCurrentState ? Colors.amber.shade100 : Colors.white),
+            children: [
+              Padding(padding: const EdgeInsets.all(8.0), child: Text('${row[0]}', textAlign: TextAlign.center, style: TextStyle(fontWeight: isCurrentState ? FontWeight.bold : FontWeight.normal))),
+              if (!isSingleInput) Padding(padding: const EdgeInsets.all(8.0), child: Text('${row[1]}', textAlign: TextAlign.center, style: TextStyle(fontWeight: isCurrentState ? FontWeight.bold : FontWeight.normal))),
+              Padding(padding: const EdgeInsets.all(8.0), child: Text('${row[2]}', textAlign: TextAlign.center, style: TextStyle(fontWeight: isCurrentState ? FontWeight.bold : FontWeight.normal, color: row[2] == 1 ? const Color(0xFF006633) : Colors.red))),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  int _calculateOutputFor(int a, int b) {
+    switch (_selectedGate) {
+      case 'AND': return (a == 1 && b == 1) ? 1 : 0;
+      case 'OR': return (a == 1 || b == 1) ? 1 : 0;
+      case 'NOT': return (a == 0) ? 1 : 0;
+      case 'NAND': return (a == 1 && b == 1) ? 0 : 1;
+      case 'NOR': return (a == 0 && b == 0) ? 1 : 0;
+      case 'XOR': return (a != b) ? 1 : 0;
+      case 'XNOR': return (a == b) ? 1 : 0;
+      default: return 0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final output = _evaluateGate(_selectedGate, _inputA, _inputB);
+    final outputY = _calculateOutput();
+    final bool isSingleInput = _selectedGate == 'NOT';
 
     return Card(
-      elevation: 2,
+      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const Row(
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.memory, color: Color(0xFF006633)),
-                    SizedBox(width: 8),
-                    Text(
-                      'Interactive Logic Gate Simulator',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF004D26)),
-                    ),
-                  ],
-                ),
+                Icon(Icons.developer_board, color: Color(0xFF006633)),
+                SizedBox(width: 8),
+                Text('Interactive Logic Gate Simulator', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF004D26))),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Text('Select Gate: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 10),
                 DropdownButton<String>(
                   value: _selectedGate,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF006633)),
-                  underline: const SizedBox(),
-                  items: _gates
-                      .map((g) => DropdownMenuItem(value: g, child: Text('$g Gate')))
-                      .toList(),
+                  items: _gates.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                   onChanged: (val) {
-                    if (val != null) setState(() => _selectedGate = val);
+                    if (val != null) setState(() { _selectedGate = val; });
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Interactive Circuit Board View
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00381B),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  // Inputs Column
-                  Column(
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _inputA ? Colors.green : Colors.grey[800],
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () => setState(() => _inputA = !_inputA),
-                        child: Text('Input A: ${_inputA ? "1 (HIGH)" : "0 (LOW)"}'),
-                      ),
-                      if (_selectedGate != 'NOT') ...[
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _inputB ? Colors.green : Colors.grey[800],
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: () => setState(() => _inputB = !_inputB),
-                          child: Text('Input B: ${_inputB ? "1 (HIGH)" : "0 (LOW)"}'),
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  // Gate Symbol Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.amber, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.black26,
-                    ),
-                    child: Text(
-                      _selectedGate,
-                      style: const TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-
-                  // Output Badge
-                  Column(
-                    children: [
-                      const Text('Output (Y)', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: output ? Colors.green : Colors.red[900],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          output ? '1' : '0',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Generated Truth Table
-            const Text(
-              'Truth Table Matrix:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-            const SizedBox(height: 6),
-            Table(
-              border: TableBorder.all(color: Colors.grey[300]!),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                TableRow(
-                  decoration: BoxDecoration(color: Colors.grey[100]),
+                // Inputs
+                Column(
                   children: [
-                    const Padding(padding: EdgeInsets.all(6), child: Text('A', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
-                    if (_selectedGate != 'NOT')
-                      const Padding(padding: EdgeInsets.all(6), child: Text('B', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
-                    Padding(padding: const EdgeInsets.all(6), child: Text('Output ($_selectedGate)', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))),
+                    _buildInputToggle('A', _inputA, (val) => setState(() => _inputA = val)),
+                    if (!isSingleInput) const SizedBox(height: 16),
+                    if (!isSingleInput) _buildInputToggle('B', _inputB, (val) => setState(() => _inputB = val)),
                   ],
                 ),
-                ..._generateTruthTableRows(),
+                const SizedBox(width: 20),
+                // Gate Box
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    border: Border.all(color: Colors.blue.shade300, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(_selectedGate, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue)),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                // Output
+                Column(
+                  children: [
+                    const Text('Output Y', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: outputY == 1 ? const Color(0xFF006633) : Colors.red.shade100,
+                      child: Text('$outputY', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: outputY == 1 ? Colors.white : Colors.red)),
+                    ),
+                  ],
+                ),
               ],
             ),
+            const SizedBox(height: 24),
+            const Text('Truth Table Verification:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _buildTruthTable(),
           ],
         ),
       ),
     );
   }
 
-  List<TableRow> _generateTruthTableRows() {
-    final combinations = _selectedGate == 'NOT'
-        ? [
-            [false, false],
-            [true, false],
-          ]
-        : [
-            [false, false],
-            [false, true],
-            [true, false],
-            [true, true],
-          ];
-
-    return combinations.map((pair) {
-      final a = pair[0];
-      final b = pair[1];
-      final res = _evaluateGate(_selectedGate, a, b);
-      final isActiveRow = (_selectedGate == 'NOT')
-          ? (_inputA == a)
-          : (_inputA == a && _inputB == b);
-
-      return TableRow(
-        decoration: isActiveRow ? BoxDecoration(color: Colors.green[100]) : null,
-        children: [
-          Padding(padding: const EdgeInsets.all(6), child: Text(a ? '1' : '0', textAlign: TextAlign.center)),
-          if (_selectedGate != 'NOT')
-            Padding(padding: const EdgeInsets.all(6), child: Text(b ? '1' : '0', textAlign: TextAlign.center)),
-          Padding(
-            padding: const EdgeInsets.all(6),
-            child: Text(
-              res ? '1' : '0',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: isActiveRow ? FontWeight.bold : FontWeight.normal),
-            ),
-          ),
-        ],
-      );
-    }).toList();
+  Widget _buildInputToggle(String label, int currentValue, ValueChanged<int> onChanged) {
+    return Row(
+      children: [
+        Text('Input $label:', style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(width: 8),
+        ChoiceChip(
+          label: const Text('0'),
+          selected: currentValue == 0,
+          selectedColor: Colors.red.shade100,
+          onSelected: (selected) { if (selected) onChanged(0); },
+        ),
+        const SizedBox(width: 4),
+        ChoiceChip(
+          label: const Text('1'),
+          selected: currentValue == 1,
+          selectedColor: const Color(0xFF006633),
+          labelStyle: TextStyle(color: currentValue == 1 ? Colors.white : Colors.black),
+          onSelected: (selected) { if (selected) onChanged(1); },
+        ),
+      ],
+    );
   }
 }
